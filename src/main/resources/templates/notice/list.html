@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::main}, ~{})}">
+<head>
+    <title th:text="|${selectedCategory != null ? selectedCategory.label : '전체 공지'} · BootHub|">공지 · BootHub</title>
+</head>
+<body>
+<main class="app-main">
+    <div class="page-head notice-head">
+        <div>
+            <h1 class="page-title" th:text="${selectedCategory != null ? selectedCategory.label : '전체 공지'}">전체 공지</h1>
+            <p class="page-desc">필독 공지는 맨 위에 고정돼요.</p>
+        </div>
+        <!--/* 글쓰기: ADMIN, INSTRUCTOR. 보고 있던 카테고리를 미리 골라 둔다 */-->
+        <a class="btn btn-primary" th:if="${loginUser != null and loginUser.noticeWriter}"
+           th:href="${selectedCategory != null} ? @{/admin/notices/new(category=${selectedCategory.name()})} : @{/admin/notices/new}">공지 작성</a>
+    </div>
+
+    <!--/* 카테고리 필터 */-->
+    <nav class="notice-tabs" aria-label="공지 카테고리">
+        <a class="notice-tab" th:href="@{/notices}"
+           th:classappend="${selectedCategory == null} ? 'is-active'">전체</a>
+        <a class="notice-tab" th:each="category : ${categories}"
+           th:href="@{/notices(category=${category.name()})}"
+           th:classappend="${category == selectedCategory} ? 'is-active'"
+           th:text="${category.label}">출석 관련</a>
+    </nav>
+
+    <section class="card notice-list-card">
+        <ul class="notice-list" th:unless="${notices.isEmpty()}">
+            <li class="notice-item" th:each="notice : ${notices}" th:classappend="${notice.pinned} ? 'is-pinned'">
+                <a class="notice-link" th:href="@{/notices/{id}(id=${notice.id})}">
+                    <span class="badge is-pink" th:if="${notice.pinned}">필독</span>
+                    <span class="badge" th:text="${notice.categoryLabel}">평가 관련</span>
+                    <span class="notice-title" th:text="${notice.title}">공지 제목</span>
+                    <span class="notice-meta">
+                        <span th:text="${notice.authorName}">관리자</span> ·
+                        <span th:text="${notice.createdDate}">2026.11.19</span>
+                    </span>
+                </a>
+            </li>
+        </ul>
+        <p class="notice-empty" th:if="${notices.isEmpty()}">아직 등록된 공지가 없어요.</p>
+    </section>
+</main>
+</body>
+</html>

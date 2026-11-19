@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::main}, ~{})}">
+<head>
+    <title th:text="|${notice.title} · BootHub|">공지 · BootHub</title>
+</head>
+<body>
+<main class="app-main">
+    <a class="text-link back-link" th:href="@{/notices(category=${notice.categoryKey})}"
+       th:text="|← ${notice.categoryLabel} 목록으로|">← 목록으로</a>
+
+    <article class="card notice-detail">
+        <div class="lesson-detail-meta">
+            <span class="badge is-pink" th:if="${notice.pinned}">필독</span>
+            <span class="badge" th:text="${notice.categoryLabel}">평가 관련</span>
+        </div>
+        <h1 class="page-title" th:text="${notice.title}">공지 제목</h1>
+        <p class="notice-detail-info">
+            <span th:text="${notice.authorName}">관리자</span> ·
+            <span th:text="${notice.createdAtLabel}">2026.11.19 10:30</span>
+        </p>
+        <!--/* 줄바꿈은 CSS(white-space: pre-line)로 살린다. th:text 라 HTML 은 그대로 이스케이프된다 */-->
+        <div class="notice-content" th:text="${notice.content}">공지 내용</div>
+    </article>
+</main>
+</body>
+</html>

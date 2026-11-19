@@ -19,4 +19,9 @@ public enum Role {
     public String authority() {
         return "ROLE_" + name();
     }
+
+    /** 공지 작성 가능 (SecurityConfig 의 /admin/notices/** 규칙과 같다) */
+    public boolean canWriteNotice() {
+        return this == ADMIN || this == INSTRUCTOR;
+    }
 }

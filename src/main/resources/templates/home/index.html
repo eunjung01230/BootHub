@@ -12,8 +12,19 @@
     </div>
 
     <div class="home-stack">
-        <!--/* 필독 공지 배너: 4단계에서 채운다 */-->
-        <div class="placeholder is-banner">필독 공지 배너 (4단계)</div>
+        <!--/* 필독 공지 배너: 가장 최근 필독 공지 하나. 필독 공지가 없으면 숨긴다 */-->
+        <a class="notice-banner" th:if="${noticeBanner != null}"
+           th:href="@{/notices/{id}(id=${noticeBanner.id})}">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m3 11 18-5v12L3 14v-3z"/>
+                <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+            </svg>
+            <span class="notice-banner-label">필독 ·</span>
+            <span class="notice-banner-title" th:text="${noticeBanner.title}">프로젝트 평가 및 제출 안내</span>
+            <span class="notice-banner-more" th:if="${noticeBanner.otherCount > 0}"
+                  th:text="|외 필독 ${noticeBanner.otherCount}건|">외 필독 1건</span>
+        </a>
 
         <!--/* 월간 수업 캘린더 */-->
         <section class="calendar" id="calendar" aria-label="수업 캘린더">
