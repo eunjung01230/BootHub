@@ -84,7 +84,7 @@ com.wanted.boothub
 │   ├── PasswordPolicy       # 사용자 비밀번호 검증 규칙
 │   ├── PasswordChangeRequiredFilter, LoginSuccessHandler  # mustChangePassword 강제 이동
 │   ├── AccountController    # /account/password (본인 비밀번호 변경)
-│   ├── MemberSessionExpirer # 비활성화한 회원의 로그인 세션 끊기 (SessionRegistry)
+│   ├── MemberSessionExpirer # 비활성화·비밀번호 초기화한 회원의 로그인 세션 끊기 (SessionRegistry)
 │   └── dto                  # LoginUserDto, MemberSummaryDto, MemberForm, PasswordChangeForm, IssuedPasswordDto
 ├── lesson
 │   ├── Lesson, LessonResource, ResourceType

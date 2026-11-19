@@ -11,6 +11,7 @@ import com.wanted.boothub.member.MemberRepository;
 import com.wanted.boothub.member.MemberService;
 import com.wanted.boothub.member.PasswordChangeRequiredFilter;
 import com.wanted.boothub.member.Role;
+import com.wanted.boothub.member.dto.IssuedPasswordDto;
 import com.wanted.boothub.notice.NoticeCategory;
 import com.wanted.boothub.notice.NoticeRepository;
 import com.wanted.boothub.notice.NoticeService;
@@ -72,7 +73,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *  3. CSRF: 권한이 있어도 토큰이 없거나 틀리면 403 (H2 콘솔만 local 에서 제외)
  *  4. 이중 잠금: 관리용 Service 메서드를 직접 불러도 @PreAuthorize 가 막는다
  *  5. 비밀번호 변경 강제: 변경 전에는 어떤 URL 을 직접 입력해도 /account/password 로 간다
- *  6. 객체 단위: 본인 비밀번호만 변경, 관리자 본인 비활성화 불가, 비활성 계정 로그인 불가·기존 세션 끊김
+ *  6. 객체 단위: 본인 비밀번호만 변경, 관리자 본인 비활성화 불가, 비활성 계정 로그인 불가,
+ *     비활성화·비밀번호 초기화 시 기존 세션 끊김
  *  7. 경로 변형(../, 인코딩된 /, ;, 대소문자, 끝 슬래시)으로 우회되지 않는다
  *
  * 이 클래스는 local 프로필이라 H2 콘솔이 열려 있다. local 이 아닌 환경은 H2ConsoleNonLocalTest 에서 본다.
@@ -493,6 +495,42 @@ class AccessControlTest {
                         .param("newPasswordConfirm", "react2026"))
                 .andExpect(redirectedUrl("/login?expired"));
         assertThat(passwordEncoder.matches("1234", memberOf("s3-003").getPassword())).isTrue();
+    }
+
+    @Test
+    void 비밀번호를_초기화하면_이미_로그인해_있던_세션도_끊기고_새_임시_비밀번호로_변경을_강제한다() throws Exception {
+        MockHttpSession target = login("s3-002", "1234");
+        MockHttpSession bystander = login("s3-001", "1234");
+
+        MvcResult reset = mockMvc.perform(post("/admin/members/{id}/reset-password", memberOf("s3-002").getId())
+                        .with(user(principalOf(Who.ADMIN))).with(csrf()))
+                .andExpect(redirectedUrl("/admin/members"))
+                .andReturn();
+        IssuedPasswordDto issued = (IssuedPasswordDto) reset.getFlashMap().get("issuedPassword");
+
+        mockMvc.perform(get("/").session(target)).andExpect(redirectedUrl("/login?expired"));
+        mockMvc.perform(get("/").session(bystander)).andExpect(status().isOk());
+        // 새 임시 비밀번호로 다시 로그인하면 변경 화면으로
+        mockMvc.perform(formLogin("/login").userParameter("loginId").user("s3-002").password(issued.password()))
+                .andExpect(redirectedUrl(CHANGE_URL));
+    }
+
+    /** 지금 세션까지 끊으면 한 번만 보여주는 임시 비밀번호를 못 보고 로그아웃된다 */
+    @Test
+    void 관리자가_자기_비밀번호를_초기화하면_지금_세션은_남고_다른_기기_세션만_끊긴다() throws Exception {
+        MockHttpSession current = login(IntegrationTest.ADMIN_ID, IntegrationTest.ADMIN_PASSWORD);
+        MockHttpSession otherDevice = login(IntegrationTest.ADMIN_ID, IntegrationTest.ADMIN_PASSWORD);
+
+        MvcResult reset = mockMvc.perform(post("/admin/members/{id}/reset-password",
+                        memberOf(IntegrationTest.ADMIN_ID).getId()).session(current).with(csrf()))
+                .andExpect(redirectedUrl("/admin/members"))
+                .andReturn();
+        IssuedPasswordDto issued = (IssuedPasswordDto) reset.getFlashMap().get("issuedPassword");
+
+        mockMvc.perform(get("/admin/members").session(current))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(issued.password())));
+        mockMvc.perform(get("/admin/members").session(otherDevice)).andExpect(redirectedUrl("/login?expired"));
     }
 
     // ================================================================

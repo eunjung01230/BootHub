@@ -76,13 +76,17 @@ public class MemberService {
         return new IssuedPasswordDto(loginId, name.strip(), rawPassword, "발급");
     }
 
-    /** 관리자 비밀번호 초기화. 새 임시 비밀번호를 발급하고 다음 로그인 때 변경을 강제한다. */
+    /**
+     * 관리자 비밀번호 초기화. 새 임시 비밀번호를 발급하고 다음 로그인 때 변경을 강제한다.
+     * 이미 로그인해 있던 세션도 끊는다 (관리자가 자기 비밀번호를 초기화한 경우 지금 세션은 남긴다).
+     */
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public IssuedPasswordDto resetPassword(Long memberId) {
         Member member = getMember(memberId);
         String rawPassword = passwordGenerator.generate();
         member.resetPassword(passwordEncoder.encode(rawPassword));
+        memberSessionExpirer.expireAll(memberId);
         return new IssuedPasswordDto(member.getLoginId(), member.getName(), rawPassword, "초기화");
     }
 

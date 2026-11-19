@@ -28,7 +28,8 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
  * 비밀번호 변경이 필요한 계정(mustChangePassword)은 로그인 직후와 이후 모든 요청에서
  * /account/password 로 보낸다. 권한 검사보다 먼저 돌려서, 권한이 있는 URL 을 직접 입력해도 우회되지 않는다.
  *
- * 로그인 세션은 SessionRegistry 에 기록한다. 계정을 비활성화하면 MemberSessionExpirer 가 그 회원의 세션을
+ * 로그인 세션은 SessionRegistry 에 기록한다. 계정을 비활성화하거나 비밀번호를 초기화하면
+ * MemberSessionExpirer 가 그 회원의 세션을
  * 만료시키고, 다음 요청에서 ConcurrentSessionFilter 가 로그아웃시켜 /login?expired 로 보낸다.
  */
 @Configuration
