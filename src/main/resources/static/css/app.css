@@ -148,6 +148,14 @@ a.header-link:hover { color: var(--color-navy); text-decoration: underline; }
   font-size: 12px;
 }
 
+.header-account-link {
+  margin-left: 4px;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.header-account-link:hover { color: var(--color-navy); text-decoration: underline; }
+
 .header-logout { margin: 0 0 0 4px; }
 
 .header-logout-btn {
@@ -941,6 +949,188 @@ span.lesson-action.is-disabled { cursor: not-allowed; }
   text-align: center;
 }
 
+/* ---------- 안내 메시지 (flash) ---------- */
+.flash {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-blue);
+  border-radius: var(--radius-cell);
+  background: var(--color-blue-soft);
+  color: var(--color-navy);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.flash.is-error {
+  border-color: var(--color-pink);
+  background: var(--color-pink-soft);
+  color: var(--color-text);
+}
+
+/* ---------- 관리자 · 계정 ---------- */
+.page-head-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.page-head-row .btn { flex: none; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.btn-sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.btn-outline.is-danger { color: var(--color-sunday); }
+.btn-outline.is-danger:hover { border-color: var(--color-sunday); color: var(--color-sunday); }
+
+.badge.is-muted { background: var(--color-ivory); color: var(--color-muted); }
+
+.badge-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.is-mono { font-family: ui-monospace, Consolas, monospace; }
+
+/* 목록 표 */
+.table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-wrap { overflow-x: auto; }
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.admin-table th {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-ivory);
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 12px 16px;
+  vertical-align: middle;
+}
+
+.admin-table tbody tr + tr td { border-top: 1px solid var(--color-border); }
+
+.admin-table .is-nowrap { white-space: nowrap; }
+.admin-table .is-num { text-align: right; white-space: nowrap; }
+.admin-table .is-action { text-align: right; white-space: nowrap; }
+.admin-table .is-title { min-width: 160px; font-weight: 600; }
+
+.admin-table tr.is-inactive td { color: var(--color-muted); }
+
+.row-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.row-actions form { margin: 0; }
+
+/* 등록·수정 폼 */
+.admin-form {
+  display: grid;
+  gap: 18px;
+  max-width: 760px;
+}
+
+.admin-section { margin-top: 16px; }
+
+.section-title.is-first { margin-top: 0; }
+
+.form-textarea.is-short { min-height: 96px; }
+
+.form-optional {
+  color: var(--color-muted);
+  font-weight: 400;
+}
+
+.form-hint {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.form-static {
+  padding: 10px 12px;
+  border-radius: var(--radius-cell);
+  background: var(--color-ivory);
+  font-size: 14px;
+}
+
+.form-notice {
+  max-width: 760px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: var(--radius-cell);
+  background: var(--color-pink-soft);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.resource-form {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 14px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border);
+}
+
+.resource-form-url,
+.resource-form .form-actions { grid-column: 1 / -1; }
+
+/* 발급한 임시 비밀번호 (한 번만 표시) */
+.issued-password {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+  border-color: var(--color-navy);
+}
+
+.issued-password-head { font-size: 14px; }
+
+.issued-password-value {
+  justify-self: start;
+  padding: 8px 16px;
+  border-radius: var(--radius-cell);
+  background: var(--color-blue-soft);
+  color: var(--color-navy);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  user-select: all;
+}
+
+.issued-password-help {
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 /* ---------- 반응형 ---------- */
 @media (max-width: 760px) {
   .app-shell { padding: 0 16px 32px; }
@@ -987,6 +1177,10 @@ span.lesson-action.is-disabled { cursor: not-allowed; }
   .notice-title { flex-basis: 100%; margin-left: 0; order: 1; }
   .notice-meta { order: 2; }
   .notice-head { flex-wrap: wrap; align-items: flex-start; }
+  .page-head-row { flex-wrap: wrap; align-items: flex-start; }
+
+  /* 자료 링크 추가 폼: 한 줄에 한 칸 */
+  .resource-form { grid-template-columns: 1fr; }
 
   /* 헤더가 두 줄이 되므로 #calendar 이동 시 제목이 가려지지 않게 여백을 늘린다 */
   .calendar { scroll-margin-top: 120px; }

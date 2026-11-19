@@ -45,6 +45,7 @@
             </span>
             <span class="header-user-name" th:text="${loginUser.name}">홍길동</span>
             <span class="header-user-role" th:text="${loginUser.roleLabel}">수강생</span>
+            <a class="header-account-link" th:href="@{/account/password}">비밀번호 변경</a>
             <form class="header-logout" th:action="@{/logout}" method="post">
                 <button type="submit" class="header-logout-btn">로그아웃</button>
             </form>

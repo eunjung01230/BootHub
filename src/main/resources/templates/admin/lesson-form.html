@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--/*
+  수업 등록·수정 공용 화면. lessonId 가 있으면 수정 모드:
+  날짜는 바꿀 수 없고(숨은 값), 아래에 자료 링크 목록과 추가 폼이 붙는다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::main}, ~{})}">
+<head>
+    <title th:text="${lessonId != null} ? '수업 수정 · BootHub' : '수업 등록 · BootHub'">수업 등록 · BootHub</title>
+</head>
+<body>
+<main class="app-main" th:with="editing=${lessonId != null}">
+    <a class="text-link back-link" th:href="@{/admin/lessons}">← 수업 관리로</a>
+
+    <div class="page-head">
+        <h1 class="page-title" th:text="${editing} ? '수업 수정' : '수업 등록'">수업 등록</h1>
+        <p class="page-desc" th:unless="${editing}">하루에 수업은 하나예요. 등록하면 자료 링크를 추가하는 화면으로 넘어가요.</p>
+        <p class="page-desc" th:if="${editing}">
+            <a class="text-link" th:href="@{/(date=${lesson.date})} + '#calendar'">캘린더에서 보기 →</a>
+        </p>
+    </div>
+
+    <form class="card admin-form"
+          th:action="${editing} ? @{/admin/lessons/{id}/edit(id=${lessonId})} : @{/admin/lessons/new}"
+          th:object="${lessonForm}" method="post" novalidate>
+        <label class="form-field" th:unless="${editing}">
+            <span class="form-label">날짜</span>
+            <input class="form-input" type="date" th:field="*{lessonDate}" th:errorclass="is-error">
+            <span class="form-error" th:if="${#fields.hasErrors('lessonDate')}" th:errors="*{lessonDate}">오류</span>
+        </label>
+        <div class="form-field" th:if="${editing}">
+            <span class="form-label">날짜</span>
+            <p class="form-static" th:text="${lesson.dateLabel}">11월 2일 (월)</p>
+            <input type="hidden" th:field="*{lessonDate}">
+        </div>
+
+        <label class="form-field">
+            <span class="form-label">수업명</span>
+            <input class="form-input" type="text" th:field="*{title}" th:errorclass="is-error"
+                   maxlength="100" placeholder="예: HTML 기초">
+            <span class="form-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">오류</span>
+        </label>
+
+        <label class="form-field">
+            <span class="form-label">설명 <span class="form-optional">(선택)</span></span>
+            <textarea class="form-input form-textarea is-short" th:field="*{description}" th:errorclass="is-error"
+                      maxlength="1000" placeholder="수업에서 다루는 내용을 한두 문장으로 적어 주세요"></textarea>
+            <span class="form-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">오류</span>
+        </label>
+
+        <label class="form-field">
+            <span class="form-label">GitHub 코드 주소 <span class="form-optional">(선택)</span></span>
+            <input class="form-input" type="url" th:field="*{githubUrl}" th:errorclass="is-error"
+                   maxlength="500" placeholder="https://github.com/...">
+            <span class="form-error" th:if="${#fields.hasErrors('githubUrl')}" th:errors="*{githubUrl}">오류</span>
+        </label>
+
+        <label class="form-check">
+            <input type="checkbox" th:field="*{important}">
+            중요 일정 (캘린더에 연분홍 배경)
+        </label>
+
+        <div class="form-actions">
+            <a class="btn btn-outline" th:href="@{/admin/lessons}">취소</a>
+            <button type="submit" class="btn btn-primary" th:text="${editing} ? '저장' : '등록'">등록</button>
+        </div>
+    </form>
+
+    <!--/* 자료 링크: 수정 모드에서만. 파일 업로드 없이 링크만 등록한다 */-->
+    <section class="card admin-form admin-section" th:if="${editing}">
+        <h2 class="section-title is-first">자료 링크</h2>
+
+        <ul class="resource-list" th:unless="${lesson.resources.isEmpty()}">
+            <li class="resource-item" th:each="resource : ${lesson.resources}">
+                <span class="resource-type" th:text="${resource.typeLabel}">강사 아티팩트</span>
+                <a class="resource-link" th:href="${resource.url}" target="_blank" rel="noopener noreferrer"
+                   th:text="|${resource.title} ↗|">자료</a>
+            </li>
+        </ul>
+        <p class="lesson-panel-empty" th:if="${lesson.resources.isEmpty()}">
+            아직 등록된 자료가 없어요. 링크를 하나 추가하면 캘린더에 초록 점이 생겨요.
+        </p>
+
+        <form class="resource-form" th:action="@{/admin/lessons/{id}/resources(id=${lessonId})}"
+              th:object="${resourceForm}" method="post" novalidate>
+            <label class="form-field">
+                <span class="form-label">종류</span>
+                <select class="form-input" id="resourceType" th:field="*{type}" th:errorclass="is-error">
+                    <option th:each="type : ${resourceTypes}" th:value="${type.name()}"
+                            th:text="${type.label}">강사 아티팩트</option>
+                </select>
+                <span class="form-error" th:if="${#fields.hasErrors('type')}" th:errors="*{type}">오류</span>
+            </label>
+            <label class="form-field">
+                <span class="form-label">자료 이름</span>
+                <input class="form-input" type="text" id="resourceTitle" th:field="*{title}" th:errorclass="is-error"
+                       maxlength="100" placeholder="예: Flexbox 정리 자료">
+                <span class="form-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">오류</span>
+            </label>
+            <label class="form-field resource-form-url">
+                <span class="form-label">주소</span>
+                <input class="form-input" type="url" id="resourceUrl" th:field="*{url}" th:errorclass="is-error"
+                       maxlength="500" placeholder="https://...">
+                <span class="form-error" th:if="${#fields.hasErrors('url')}" th:errors="*{url}">오류</span>
+            </label>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">링크 추가</button>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

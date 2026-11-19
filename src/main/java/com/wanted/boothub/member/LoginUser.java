@@ -21,17 +21,29 @@ public class LoginUser implements UserDetails, CredentialsContainer {
     private String password;
     private final String name;
     private final Role role;
+    private final boolean active;
+    /** true 면 PasswordChangeRequiredFilter 가 /account/password 외의 화면을 막는다 */
+    private final boolean mustChangePassword;
 
-    private LoginUser(Member member) {
-        this.memberId = member.getId();
-        this.loginId = member.getLoginId();
-        this.password = member.getPassword();
-        this.name = member.getName();
-        this.role = member.getRole();
+    private LoginUser(Long memberId, String loginId, String password, String name, Role role,
+                      boolean active, boolean mustChangePassword) {
+        this.memberId = memberId;
+        this.loginId = loginId;
+        this.password = password;
+        this.name = name;
+        this.role = role;
+        this.active = active;
+        this.mustChangePassword = mustChangePassword;
     }
 
     public static LoginUser from(Member member) {
-        return new LoginUser(member);
+        return new LoginUser(member.getId(), member.getLoginId(), member.getPassword(), member.getName(),
+                member.getRole(), member.isActive(), member.isMustChangePassword());
+    }
+
+    /** 비밀번호를 바꾼 뒤 세션의 로그인 정보를 갈아 끼울 때 쓴다 */
+    public LoginUser withPasswordChanged() {
+        return new LoginUser(memberId, loginId, null, name, role, active, false);
     }
 
     @Override
@@ -42,6 +54,12 @@ public class LoginUser implements UserDetails, CredentialsContainer {
     @Override
     public String getUsername() {
         return loginId;
+    }
+
+    /** 비활성 계정은 Spring Security 가 로그인을 거부한다 (DisabledException) */
+    @Override
+    public boolean isEnabled() {
+        return active;
     }
 
     @Override

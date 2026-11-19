@@ -36,10 +36,10 @@ public class LessonResource extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private ResourceType type;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = Lesson.TITLE_MAX)
     private String title;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = Lesson.URL_MAX)
     private String url;
 
     @Column(nullable = false)

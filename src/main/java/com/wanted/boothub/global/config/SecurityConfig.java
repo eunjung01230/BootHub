@@ -1,5 +1,7 @@
 package com.wanted.boothub.global.config;
 
+import com.wanted.boothub.member.LoginSuccessHandler;
+import com.wanted.boothub.member.PasswordChangeRequiredFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -7,10 +9,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
 /**
  * 폼 로그인 + URL 권한. 로그인 = 열람 허가, 관리 화면만 역할로 제한한다.
+ * 비밀번호 변경이 필요한 계정(mustChangePassword)은 로그인 직후와 이후 모든 요청에서
+ * /account/password 로 보낸다.
  */
 @Configuration
 public class SecurityConfig {
@@ -45,8 +50,9 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .usernameParameter("loginId")
-                        .defaultSuccessUrl("/")
+                        .successHandler(new LoginSuccessHandler())
                         .permitAll())
+                .addFilterAfter(new PasswordChangeRequiredFilter(), AuthorizationFilter.class)
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
                         .permitAll());

@@ -111,21 +111,21 @@ class NoticeControllerTest {
 
     @Test
     void 수강생에게는_작성_버튼이_없고_작성_화면도_막힌다() throws Exception {
-        mockMvc.perform(get("/notices").with(user(loginAs("student1"))))
+        mockMvc.perform(get("/notices").with(user(loginAs("s3-001"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(not(containsString("공지 작성"))));
-        mockMvc.perform(get("/admin/notices/new").with(user(loginAs("student1"))))
+        mockMvc.perform(get("/admin/notices/new").with(user(loginAs("s3-001"))))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(post("/admin/notices/new").with(user(loginAs("student1"))).with(csrf())
+        mockMvc.perform(post("/admin/notices/new").with(user(loginAs("s3-001"))).with(csrf())
                         .param("category", "QNA").param("title", "t").param("content", "c"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void 강사는_보던_카테고리가_선택된_작성_화면을_연다() throws Exception {
-        mockMvc.perform(get("/notices").param("category", "QNA").with(user(loginAs("instructor"))))
+        mockMvc.perform(get("/notices").param("category", "QNA").with(user(loginAs("t3-01"))))
                 .andExpect(content().string(containsString("href=\"/admin/notices/new?category=QNA\"")));
-        mockMvc.perform(get("/admin/notices/new").param("category", "QNA").with(user(loginAs("instructor"))))
+        mockMvc.perform(get("/admin/notices/new").param("category", "QNA").with(user(loginAs("t3-01"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("value=\"QNA\" selected=\"selected\"")));
     }
@@ -133,7 +133,7 @@ class NoticeControllerTest {
     @Test
     @Transactional
     void 강사가_작성한_공지는_실명과_함께_목록과_상세에_보인다() throws Exception {
-        UserDetails instructor = loginAs("instructor");
+        UserDetails instructor = loginAs("t3-01");
         MvcResult created = mockMvc.perform(post("/admin/notices/new").with(user(instructor)).with(csrf())
                         .param("category", "QNA")
                         .param("title", "  과제 제출 질문 정리  ")

@@ -35,6 +35,16 @@ class MemberSeederTest {
     }
 
     @Test
+    void 관리자_아이디가_아이디_규칙에_맞지_않으면_앱_시작을_실패시킨다() {
+        given(memberService.hasAnyMember()).willReturn(false);
+
+        assertThatThrownBy(() -> seeder(new AdminAccountProperties("Admin!", "secret")).run())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("BOOTHUB_ADMIN_ID");
+        verify(memberService, never()).create(anyString(), anyString(), anyString(), any());
+    }
+
+    @Test
     void 회원이_이미_있으면_환경변수가_없어도_아무것도_하지_않는다() {
         given(memberService.hasAnyMember()).willReturn(true);
 
@@ -60,7 +70,7 @@ class MemberSeederTest {
         seeder(new AdminAccountProperties("boss", "secret"), "local").run();
 
         verify(memberService).create("boss", "secret", "관리자", Role.ADMIN);
-        verify(memberService).create(eq("student1"), eq("1234"), anyString(), eq(Role.STUDENT));
+        verify(memberService).create(eq("s3-001"), eq("1234"), anyString(), eq(Role.STUDENT));
         verify(memberService, times(5)).create(anyString(), anyString(), anyString(), any());
     }
 }

@@ -19,6 +19,10 @@
 <div class="app-shell">
     <header th:replace="~{layout/header :: header}"></header>
 
+    <!--/* 저장·변경 후 리다이렉트로 넘어온 한 번짜리 안내 (flash attribute) */-->
+    <p class="flash" role="status" th:if="${flashMessage != null}" th:text="${flashMessage}">저장했어요.</p>
+    <p class="flash is-error" role="alert" th:if="${flashError != null}" th:text="${flashError}">오류</p>
+
     <div class="app-body">
         <aside th:replace="~{layout/sidebar :: sidebar}"></aside>
         <main th:replace="${content}"></main>

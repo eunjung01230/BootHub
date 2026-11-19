@@ -38,7 +38,7 @@ class SecurityConfigTest {
 
     @Test
     void 시드_계정으로_로그인하면_세션에_비밀번호_해시가_남지_않는다() throws Exception {
-        mockMvc.perform(formLogin("/login").userParameter("loginId").user("student1").password("1234"))
+        mockMvc.perform(formLogin("/login").userParameter("loginId").user("s3-001").password("1234"))
                 .andExpect(redirectedUrl("/"))
                 .andExpect(authenticated().withAuthentication(auth -> {
                     LoginUser loginUser = (LoginUser) auth.getPrincipal();
@@ -73,7 +73,7 @@ class SecurityConfigTest {
 
     @Test
     void 비밀번호가_틀리면_로그인되지_않는다() throws Exception {
-        mockMvc.perform(formLogin("/login").userParameter("loginId").user("student1").password("wrong"))
+        mockMvc.perform(formLogin("/login").userParameter("loginId").user("s3-001").password("wrong"))
                 .andExpect(redirectedUrl("/login?error"))
                 .andExpect(unauthenticated());
     }

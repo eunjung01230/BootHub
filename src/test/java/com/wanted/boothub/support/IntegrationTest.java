@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 
 /**
  * 통합 테스트 공통 설정. 모든 테스트가 같은 스프링 컨텍스트를 재사용한다.
- *  - local: 연습용 계정(instructor, student1~3) 시드
+ *  - local: 연습용 계정(t3-01, s3-001~s3-003) 시드
  *  - test : 메모리 DB
  *  - 관리자 계정·외부 링크는 테스트용 더미 값. @TestPropertySource 는 OS 환경변수보다 우선하므로
  *    개발 PC 에 BOOTHUB_* 환경변수가 있어도 테스트 결과가 바뀌지 않는다.

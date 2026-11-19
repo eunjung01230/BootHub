@@ -76,6 +76,7 @@ com.wanted.boothub
 │   ├── LoginUserDetailsService
 │   ├── PasswordGenerator    # 10자 랜덤 비밀번호 생성 (계정 생성·초기화)
 │   ├── PasswordPolicy       # 사용자 비밀번호 검증 규칙
+│   ├── PasswordChangeRequiredFilter, LoginSuccessHandler  # mustChangePassword 강제 이동
 │   └── AccountController    # /account/password (본인 비밀번호 변경)
 ├── lesson
 │   ├── Lesson, LessonResource, ResourceType
@@ -204,7 +205,8 @@ NoticeCategory (enum, 한글 라벨 포함)
 | POST | `/admin/lessons/{id}/resources` | 아티팩트 링크 추가 (링크만, 파일 업로드 없음) | ADMIN |
 | GET | `/admin/members` | 회원 목록 (비밀번호 초기화·비활성화 버튼 포함) | ADMIN |
 | GET/POST | `/admin/members/new` | 계정 생성 (아이디, 실명, 역할. 비밀번호는 시스템 랜덤 발급 후 한 번만 표시) | ADMIN |
-| POST | `/admin/members/{id}/...` | 비밀번호 초기화(랜덤 재발급, 한 번만 표시), 계정 비활성화 (세부 경로는 5단계에서 확정) | ADMIN |
+| POST | `/admin/members/{id}/reset-password` | 비밀번호 초기화 (랜덤 재발급, 한 번만 표시) | ADMIN |
+| POST | `/admin/members/{id}/deactivate` | 계정 비활성화 (본인 계정은 불가) | ADMIN |
 | GET | `/coming-soon?feature=chat` | v2 준비 중 페이지 | 로그인 |
 
 ---

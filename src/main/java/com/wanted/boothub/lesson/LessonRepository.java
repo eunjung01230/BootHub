@@ -15,4 +15,13 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
 
     @EntityGraph(attributePaths = "resources")
     Optional<Lesson> findByLessonDate(LocalDate lessonDate);
+
+    /** 관리자 수업 목록용. 자료 개수를 보여주므로 함께 가져온다. */
+    @EntityGraph(attributePaths = "resources")
+    List<Lesson> findAllByOrderByLessonDateAsc();
+
+    @EntityGraph(attributePaths = "resources")
+    Optional<Lesson> findWithResourcesById(Long id);
+
+    boolean existsByLessonDate(LocalDate lessonDate);
 }

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::main}, ~{})}">
+<head>
+    <title>수업 관리 · BootHub</title>
+</head>
+<body>
+<main class="app-main">
+    <div class="page-head page-head-row">
+        <div>
+            <h1 class="page-title">수업 관리</h1>
+            <p class="page-desc">등록한 수업은 홈 캘린더에 바로 보여요. 자료 링크를 하나 이상 넣으면 초록 점이 붙어요.</p>
+        </div>
+        <a class="btn btn-primary" th:href="@{/admin/lessons/new}">수업 등록</a>
+    </div>
+
+    <section class="card table-card">
+        <div class="table-wrap" th:unless="${lessons.isEmpty()}">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th scope="col">날짜</th>
+                    <th scope="col">수업명</th>
+                    <th scope="col">상태</th>
+                    <th scope="col" class="is-num">자료</th>
+                    <th scope="col" class="is-action"><span class="sr-only">관리</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="lesson : ${lessons}">
+                    <td class="is-nowrap">
+                        <a class="text-link" th:href="@{/(date=${lesson.date})} + '#calendar'"
+                           th:text="${lesson.dateLabel}" title="캘린더에서 보기">11월 2일 (월)</a>
+                    </td>
+                    <td class="is-title" th:text="${lesson.title}">HTML 기초</td>
+                    <td>
+                        <span class="badge-row">
+                            <span class="badge is-pink" th:if="${lesson.important}">중요 일정</span>
+                            <span class="badge is-green" th:if="${lesson.resourceCount > 0}">자료 준비</span>
+                            <span class="badge" th:if="${lesson.hasGithub}">GitHub</span>
+                        </span>
+                    </td>
+                    <td class="is-num" th:text="${lesson.resourceCount}">1</td>
+                    <td class="is-action">
+                        <a class="btn btn-outline btn-sm" th:href="@{/admin/lessons/{id}/edit(id=${lesson.id})}">수정</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="notice-empty" th:if="${lessons.isEmpty()}">아직 등록된 수업이 없어요.</p>
+    </section>
+</main>
+</body>
+</html>

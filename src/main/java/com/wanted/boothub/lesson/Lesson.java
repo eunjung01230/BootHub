@@ -27,6 +27,10 @@ import java.util.Optional;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Lesson extends BaseTimeEntity {
 
+    public static final int TITLE_MAX = 100;
+    public static final int DESCRIPTION_MAX = 1000;
+    public static final int URL_MAX = 500;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,13 +38,13 @@ public class Lesson extends BaseTimeEntity {
     @Column(nullable = false, unique = true)
     private LocalDate lessonDate;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = TITLE_MAX)
     private String title;
 
-    @Column(length = 1000)
+    @Column(length = DESCRIPTION_MAX)
     private String description;
 
-    @Column(length = 500)
+    @Column(length = URL_MAX)
     private String githubUrl;
 
     /** 중요 일정 (캘린더 연분홍 배경) */
