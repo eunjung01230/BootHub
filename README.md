@@ -20,6 +20,7 @@
 | 공지 | 출석 / 평가 / 커리큘럼 / 연락처 / 공지 Q&A 카테고리 게시판, 필독 고정 |
 | 관리자 | 수업 등록·수정, 자료 링크 추가, 공지 작성, 회원 관리 (계정 생성·비밀번호 초기화·비활성화) |
 | 계정 보안 | 시스템이 10자 랜덤 비밀번호를 발급해 한 번만 표시, 첫 로그인 때 비밀번호 변경 강제 |
+| 접근 제어 | URL·Service 이중 권한 검사, CSRF, 비활성화·초기화 시 기존 세션 끊기 ([보안](#보안) 참고) |
 
 ### 캘린더 표시 규칙
 
@@ -118,6 +119,10 @@ $env:BOOTHUB_ADMIN_PASSWORD = "원하는-비밀번호"
 ./gradlew test
 ```
 
+- `AccessControlTest`: 역할(비로그인·수강생·교수·강사·관리자) × 모든 URL(GET·POST) 권한 표, CSRF, Service 이중 잠금,
+  비밀번호 변경 강제, 본인 계정 검사, 세션 끊기, 경로 조작 우회를 확인합니다.
+- `H2ConsoleNonLocalTest`: `local`이 아닌 환경에는 H2 콘솔이 등록되지 않는지 확인합니다.
+
 ---
 
 ## 계정 규칙
@@ -134,6 +139,27 @@ $env:BOOTHUB_ADMIN_PASSWORD = "원하는-비밀번호"
 - 발급받은 계정은 첫 로그인 직후 `/account/password`로 이동하며, 변경 전에는 다른 페이지로 갈 수 없습니다.
 - 사용자 비밀번호: 8자 이상, 영문과 숫자 포함, 아이디와 같거나 아이디를 포함하면 안 됩니다.
 - 비활성화된 계정은 로그인할 수 없습니다. 관리자는 자기 계정을 비활성화할 수 없습니다.
+- 계정을 비활성화하거나 비밀번호를 초기화하면, 그 계정으로 이미 로그인해 있던 세션도 끊깁니다.
+
+---
+
+## 보안
+
+URL을 직접 입력해도 권한을 우회할 수 없도록 여러 겹으로 막습니다.
+
+| 항목 | 내용 |
+|---|---|
+| URL 권한 | 로그인 없이 열리는 곳은 `/login`, `/error`, 정적 리소스(`/css`, `/js`, `/images`, `/favicon.ico`)뿐입니다. `/admin/**`는 GET·POST 모두 ADMIN만, 공지 작성(`/admin/notices/**`)만 ADMIN·INSTRUCTOR가 씁니다. 나머지는 로그인이 필요합니다 |
+| 이중 잠금 | `@EnableMethodSecurity`로 관리용 Service 메서드(계정 발급·비밀번호 초기화·비활성화, 수업 등록·수정·자료 추가, 공지 작성)에 `@PreAuthorize`를 붙였습니다. URL 규칙이 빠지더라도 Service에서 한 번 더 막힙니다 |
+| CSRF | 로그인을 포함한 모든 POST에 CSRF 토큰이 필요합니다. 예외는 `local` 프로필의 H2 콘솔 경로뿐입니다 |
+| 비밀번호 변경 강제 | `mustChangePassword` 계정은 비밀번호를 바꾸기 전까지 `/account/password`, `/logout`, 정적 리소스 외의 모든 요청이 변경 화면으로 이동합니다. 권한 검사보다 먼저 실행되므로 관리자 URL을 직접 입력해도 우회되지 않습니다 |
+| 본인 계정 검사 | 비밀번호 변경은 로그인한 본인 계정에만 적용됩니다. 요청에 다른 회원 id를 넣어도 무시하고, Service에서도 본인인지 다시 확인합니다. 관리자는 자기 계정을 비활성화할 수 없습니다 |
+| 세션 끊기 | 계정을 비활성화하거나 비밀번호를 초기화하면 그 회원의 기존 로그인 세션(모든 기기)을 끊고 `/login?expired`로 보냅니다. 관리자가 자기 비밀번호를 초기화할 때는 임시 비밀번호를 확인해야 하므로 지금 쓰는 세션만 남깁니다 |
+| 경로 조작 | `../`, 인코딩된 `/`, `;` 등이 섞인 요청은 Spring Security 방화벽이 400으로 거부합니다 |
+| H2 콘솔 | `local` 프로필에서만 등록되고 ADMIN만 열 수 있습니다. 다른 환경에는 콘솔도, 보안 예외도 없습니다 |
+| 403 화면 | 권한이 없거나 CSRF 토큰이 만료되면 공통 레이아웃의 403 안내 화면을 보여 줍니다 |
+
+> 로그인 세션 기록은 서버 메모리에 있습니다 (서버 1대 기준). 서버를 여러 대로 늘리면 Spring Session 같은 공유 저장소로 옮겨야 합니다.
 
 ---
 
@@ -144,11 +170,11 @@ $env:BOOTHUB_ADMIN_PASSWORD = "원하는-비밀번호"
 ```
 src/main/java/com/wanted/boothub
 ├── global
-│   ├── config       # SecurityConfig, JpaAuditingConfig, ClockConfig
+│   ├── config       # SecurityConfig(URL 권한·메서드 보안·세션 관리), JpaAuditingConfig, ClockConfig
 │   ├── common       # BaseTimeEntity (createdAt, updatedAt)
 │   ├── exception    # BusinessException, NotFoundException
 │   └── web          # 외부 링크·로그인 사용자 공통 모델, 준비 중 페이지
-├── member           # 회원, 로그인, 시드 계정, 비밀번호 발급·정책·변경 강제
+├── member           # 회원, 로그인, 시드 계정, 비밀번호 발급·정책·변경 강제, 세션 끊기
 ├── lesson           # 수업, 수업 자료 링크, 월간 캘린더, 시드 수업
 ├── notice           # 공지, 카테고리, 필독, 시드 공지
 ├── admin            # 관리자 화면 컨트롤러 (로직은 각 도메인 Service 호출)
@@ -163,7 +189,7 @@ src/main/resources
     ├── layout/      # base, header, sidebar fragment
     ├── home/  lesson/  notice/  admin/  auth/  account/
     ├── common/coming-soon.html
-    └── error/       # 4xx, 5xx
+    └── error/       # 403, 404, 500, 4xx, 5xx
 ```
 
 ### 도메인 모델
@@ -197,7 +223,7 @@ Notice ──N:1──▶ Member(author)
 | GET/POST | `/admin/members/new` | 계정 생성 | ADMIN |
 | POST | `/admin/members/{id}/reset-password`, `/admin/members/{id}/deactivate` | 비밀번호 초기화·비활성화 | ADMIN |
 | GET | `/coming-soon?feature=chat` | v2 준비 중 페이지 | 로그인 |
-| — | `/h2-console` | H2 콘솔 (개발용) | ADMIN |
+| — | `/h2-console` | H2 콘솔 (`local` 프로필 전용) | ADMIN |
 
 ### 디자인 토큰
 
@@ -246,3 +272,4 @@ AI 모듈의 상세 설계는 [`docs/ai-module-spec.md`](docs/ai-module-spec.md)
 | 4 | 공지, 카테고리 필터, 필독 배너, 작성 화면 | 완료 |
 | 5 | 관리자 수업·자료 링크 관리, 회원 관리 | 완료 |
 | 6 | README | 완료 |
+| + | 보안 강화: URL·Service 이중 잠금, CSRF, `local` 전용 H2 콘솔, 403 화면, 비활성화·초기화 시 세션 끊기 | 완료 |
