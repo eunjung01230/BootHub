@@ -5,9 +5,10 @@ spring:
     url: jdbc:h2:file:./data/boothub
     username: sa
     password:
+  # H2 콘솔은 local 프로필에서만 연다 (아래 local 문서). devtools 가 켜면 true 가 기본값이 되므로 명시적으로 끈다.
   h2:
     console:
-      enabled: true
+      enabled: false
   jpa:
     hibernate:
       ddl-auto: update
@@ -26,3 +27,13 @@ boothub:
     slack: ${BOOTHUB_LINKS_SLACK:}
     github: ${BOOTHUB_LINKS_GITHUB:}
     notion: ${BOOTHUB_LINKS_NOTION:}
+
+---
+# local 프로필 전용: 개발용 H2 콘솔 (/h2-console, ADMIN 만 — SecurityConfig.h2ConsoleFilterChain)
+spring:
+  config:
+    activate:
+      on-profile: local
+  h2:
+    console:
+      enabled: true

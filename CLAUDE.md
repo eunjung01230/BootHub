@@ -125,8 +125,8 @@ templates/
 ├── account/password.html    # 비밀번호 변경 (mustChangePassword 강제 이동 대상)
 ├── common/coming-soon.html  # v2 기능 공용 "준비 중"
 └── error/                   # Spring Boot 기본 오류 처리(/error)가 상태 코드로 고르는 화면 (모두 공통 레이아웃)
-    ├── 404.html, 500.html
-    └── 4xx.html, 5xx.html   # 그 밖의 4xx(400·403 등) / 5xx(502·503 등)
+    ├── 403.html, 404.html, 500.html
+    └── 4xx.html, 5xx.html   # 그 밖의 4xx(400 등) / 5xx(502·503 등)
 static/css/
 ├── tokens.css               # 디자인 토큰만
 └── app.css                  # 컴포넌트 스타일

@@ -73,12 +73,27 @@ class ErrorPageTest {
     }
 
     @Test
-    void 상태_403은_4xx_화면을_보여준다() throws Exception {
+    void 상태_403은_레이아웃이_있는_403_전용_화면을_보여준다() throws Exception {
         mockMvc.perform(get("/error")
                         .with(user(loginUserDetailsService.loadUserByUsername("s3-001")))
                         .requestAttr(RequestDispatcher.ERROR_STATUS_CODE, 403)
+                        .requestAttr(RequestDispatcher.ERROR_REQUEST_URI, "/admin/members")
+                        .accept(MediaType.TEXT_HTML))
+                .andExpect(view().name("error/403"))
+                .andExpect(content().string(allOf(
+                        containsString("접근 권한이 없어요"),
+                        containsString(">403<"),
+                        containsString("class=\"app-sidebar\""),
+                        containsString("김민준"))));
+    }
+
+    @Test
+    void 상태_400은_4xx_화면을_보여준다() throws Exception {
+        mockMvc.perform(get("/error")
+                        .with(user(loginUserDetailsService.loadUserByUsername("s3-001")))
+                        .requestAttr(RequestDispatcher.ERROR_STATUS_CODE, 400)
                         .accept(MediaType.TEXT_HTML))
                 .andExpect(view().name("error/4xx"))
-                .andExpect(content().string(containsString("접근 권한이 없어요")));
+                .andExpect(content().string(containsString("요청 주소가 올바르지 않아요")));
     }
 }

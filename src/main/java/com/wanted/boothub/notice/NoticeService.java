@@ -8,6 +8,7 @@ import com.wanted.boothub.notice.dto.NoticeDetailDto;
 import com.wanted.boothub.notice.dto.NoticeSummaryDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,9 +56,21 @@ public class NoticeService {
         return noticeRepository.count() > 0;
     }
 
-    /** 공지 작성. 권한(ADMIN, INSTRUCTOR)은 SecurityConfig 의 /admin/notices/** 규칙이 맡는다. */
+    /**
+     * 공지 작성 (ADMIN, INSTRUCTOR). SecurityConfig 의 /admin/notices/** 규칙과 함께 이중으로 막는다.
+     */
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'INSTRUCTOR')")
     public Long write(Long authorId, NoticeCategory category, String title, String content, boolean pinned) {
+        return create(authorId, category, title, content, pinned);
+    }
+
+    /**
+     * 시드 공지 작성 (NoticeSeeder). 앱 시작 시에는 로그인 사용자가 없으므로 권한 검사 없이 저장한다.
+     * 화면에서는 write(...) 를 쓴다.
+     */
+    @Transactional
+    public Long create(Long authorId, NoticeCategory category, String title, String content, boolean pinned) {
         Member author = memberRepository.findById(authorId)
                 .orElseThrow(() -> new NotFoundException("작성자를 찾을 수 없습니다."));
         Notice notice = Notice.create(category, title.strip(), content.strip(), author);

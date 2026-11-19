@@ -7,6 +7,7 @@ import com.wanted.boothub.member.dto.MemberSummaryDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +62,7 @@ public class MemberService {
      * 발급된 계정은 첫 로그인 때 비밀번호 변경을 강제한다.
      */
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public IssuedPasswordDto issue(String loginId, String name, Role role) {
         if (!isValidLoginId(loginId)) {
             throw new BusinessException("loginId", "아이디는 영문 소문자, 숫자, 하이픈(-)으로 4~20자여야 해요.");
@@ -75,6 +77,7 @@ public class MemberService {
 
     /** 관리자 비밀번호 초기화. 새 임시 비밀번호를 발급하고 다음 로그인 때 변경을 강제한다. */
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public IssuedPasswordDto resetPassword(Long memberId) {
         Member member = getMember(memberId);
         String rawPassword = passwordGenerator.generate();
@@ -84,6 +87,7 @@ public class MemberService {
 
     /** 계정 비활성화. 관리자가 자기 계정을 잠가 버리는 일을 막는다. */
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public void deactivate(Long memberId, Long currentMemberId) {
         if (memberId.equals(currentMemberId)) {
             throw new BusinessException("본인 계정은 비활성화할 수 없어요.");
@@ -94,8 +98,10 @@ public class MemberService {
     /**
      * 본인 비밀번호 변경. 현재 비밀번호 확인 → 규칙 검사 → 지금 비밀번호와 다른지 확인.
      * (마지막 확인이 없으면 임시 비밀번호를 그대로 다시 넣어 변경 강제를 우회할 수 있다)
+     * 로그인한 본인 계정만 바꿀 수 있다 (Controller 도 세션의 memberId 만 넘긴다).
      */
     @Transactional
+    @PreAuthorize("isAuthenticated() and #memberId == principal.memberId")
     public void changePassword(Long memberId, String currentPassword, String newPassword) {
         Member member = getMember(memberId);
         if (!passwordEncoder.matches(currentPassword, member.getPassword())) {

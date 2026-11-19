@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--/*
+  403 오류 화면. Spring Security 가 거부하면(권한 없는 URL 직접 접근, CSRF 토큰 누락·만료)
+  sendError(403) → Spring Boot 기본 오류 처리(/error)가 상태 코드와 같은 이름의 이 템플릿을 고른다.
+  모델: status, error, path. 404 화면과 같은 카드 스타일, 공통 레이아웃 안에서 그린다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::main}, ~{})}">
+<head>
+    <title>접근 권한이 없어요 · BootHub</title>
+</head>
+<body>
+<main class="app-main">
+    <section class="card coming-soon">
+        <span class="coming-soon-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="11" width="16" height="10" rx="2"/>
+                <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+                <path d="M12 15v2"/>
+            </svg>
+        </span>
+        <span class="badge">403</span>
+        <h1 class="coming-soon-title">접근 권한이 없어요</h1>
+        <p class="coming-soon-desc">
+            이 화면은 권한이 있는 계정만 열 수 있어요.<br>
+            관리 메뉴가 필요하면 운영진에게 문의해 주세요.
+        </p>
+        <p class="coming-soon-desc">
+            폼을 오래 열어 두었다면 보안 확인이 만료됐을 수 있어요. 새로고침한 뒤 다시 시도해 주세요.
+        </p>
+        <div class="coming-soon-actions">
+            <a class="btn btn-primary" th:href="@{/}">홈으로</a>
+            <a class="btn btn-outline" th:href="@{/notices}">공지 보기</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

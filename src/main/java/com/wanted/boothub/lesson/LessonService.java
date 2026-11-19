@@ -6,6 +6,7 @@ import com.wanted.boothub.lesson.dto.AdminLessonRowDto;
 import com.wanted.boothub.lesson.dto.LessonDetailDto;
 import com.wanted.boothub.lesson.dto.LessonForm;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,6 +63,7 @@ public class LessonService {
 
     /** 수업 등록. 하루에 수업은 하나뿐이라 같은 날짜가 있으면 거부한다. */
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public Long register(LocalDate lessonDate, String title, String description, String githubUrl, boolean important) {
         if (lessonRepository.existsByLessonDate(lessonDate)) {
             throw new BusinessException("lessonDate", "이미 수업이 있는 날짜예요.");
@@ -73,12 +75,14 @@ public class LessonService {
 
     /** 수업 수정. 날짜는 바꾸지 않는다. */
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public void update(Long id, String title, String description, String githubUrl, boolean important) {
         getLesson(id).update(title.strip(), blankToNull(description), blankToNull(githubUrl), important);
     }
 
     /** 자료 링크 추가 (파일 업로드 없음). 링크가 하나라도 생기면 캘린더에 초록 점이 보인다. */
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public void addResource(Long id, ResourceType type, String title, String url) {
         getLesson(id).addResource(type, title.strip(), url.strip());
     }
