@@ -23,7 +23,7 @@
 
 ### 캘린더 표시 규칙
 
-- 초록 점: 자료 준비 완료 (수업에 링크가 1개 이상)
+- 초록 점: 자료 준비 완료 (수업 자료(`LessonResource`)가 1개 이상)
 - 네이비 테두리 + 연한 블루 배경: 선택한 날짜
 - 연분홍 배경: 중요 일정
 - 붉은 숫자: 일요일
@@ -72,7 +72,7 @@
 | `BOOTHUB_LINKS_NOTION` | 선택 | 헤더 Notion 링크 |
 
 - 회원 테이블이 비어 있는데 관리자 환경변수가 없으면 앱이 시작되지 않고 이유를 로그로 알려 줍니다.
-- 외부 링크는 환경변수 대신 git에 올리지 않는 `src/main/resources/application-local.yaml`에 넣어도 됩니다.
+- 외부 링크는 환경변수 대신 git에 올리지 않는 `src/main/resources/application-local.yaml`에 넣어도 됩니다. (`local` 프로필로 실행할 때만 읽힙니다)
   ```yaml
   boothub:
     links:
@@ -190,11 +190,14 @@ Notice ──N:1──▶ Member(author)
 | GET | `/lessons/{date}` | 수업 상세 | 로그인 |
 | GET | `/notices`, `/notices/{id}` | 공지 목록 (`?category=`)·상세 | 로그인 |
 | GET/POST | `/admin/notices/new` | 공지 작성 | ADMIN, INSTRUCTOR |
-| GET/POST | `/admin/lessons`, `/admin/lessons/new`, `/admin/lessons/{id}/edit` | 수업 관리·등록·수정 | ADMIN |
+| GET | `/admin/lessons` | 수업 관리 목록 | ADMIN |
+| GET/POST | `/admin/lessons/new`, `/admin/lessons/{id}/edit` | 수업 등록·수정 | ADMIN |
 | POST | `/admin/lessons/{id}/resources` | 수업 자료 링크 추가 | ADMIN |
-| GET/POST | `/admin/members`, `/admin/members/new` | 회원 목록·계정 생성 | ADMIN |
+| GET | `/admin/members` | 회원 목록 | ADMIN |
+| GET/POST | `/admin/members/new` | 계정 생성 | ADMIN |
 | POST | `/admin/members/{id}/reset-password`, `/admin/members/{id}/deactivate` | 비밀번호 초기화·비활성화 | ADMIN |
 | GET | `/coming-soon?feature=chat` | v2 준비 중 페이지 | 로그인 |
+| — | `/h2-console` | H2 콘솔 (개발용) | ADMIN |
 
 ### 디자인 토큰
 
@@ -226,7 +229,7 @@ v2 기능은 지금 사이드바 메뉴와 버튼만 있고, 누르면 "준비 �
 | 프로젝트 전시관 | `showcase` | 작품명, 설명, GitHub 링크, 작성자, 연관 수업 |
 | 학습 Q&A / 수업 Q&A | `qna` | 수업과 선택적으로 연결되는 질문·답변 |
 | GitHub 자동 동기화 | `sync` | `GitHubClient` 인터페이스 + 관리자 수동 버튼 → 이후 `@Scheduled` 또는 Webhook |
-| 세부 열람 권한 | `member` 확장 | 현재는 로그인 = 열람 허가 |
+| 세부 열람 권한 | 미정 | 현재는 로그인 = 열람 허가 |
 | 파일 업로드 | — | 현재 아티팩트는 링크 등록만 지원 |
 
 AI 모듈의 상세 설계는 [`docs/ai-module-spec.md`](docs/ai-module-spec.md)에 있습니다.
