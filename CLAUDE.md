@@ -28,7 +28,8 @@ AI 코딩 도구는 작업 전에 이 파일을 반드시 읽고, 여기 적힌 
   - 관리자 아이디·비밀번호는 환경변수 `BOOTHUB_ADMIN_ID`, `BOOTHUB_ADMIN_PASSWORD`에서 읽는다.
     코드와 설정 파일에 비밀번호를 쓰지 않는다
   - 회원 테이블이 비어 있는데 환경변수가 없으면 앱 시작을 실패시키고 이유를 로그로 알린다
-  - 연습용 계정(instructor, student1~3) 시드는 `local` 프로필에서만 생성한다
+  - 연습용 계정(t3-01, s3-001~s3-003) 시드는 `local` 프로필에서만 생성한다
+  - 아이디·비밀번호 형식은 4번 "계정 규칙"을 따른다
 
 ---
 
@@ -72,7 +73,10 @@ com.wanted.boothub
 │   ├── Member, Role
 │   ├── MemberRepository
 │   ├── MemberService
-│   └── LoginUserDetailsService
+│   ├── LoginUserDetailsService
+│   ├── PasswordGenerator    # 10자 랜덤 비밀번호 생성 (계정 생성·초기화)
+│   ├── PasswordPolicy       # 사용자 비밀번호 검증 규칙
+│   └── AccountController    # /account/password (본인 비밀번호 변경)
 ├── lesson
 │   ├── Lesson, LessonResource, ResourceType
 │   ├── LessonRepository, LessonResourceRepository
@@ -107,6 +111,7 @@ templates/
 ├── notice/list.html, detail.html, form.html
 ├── admin/lessons.html, lesson-form.html, members.html, member-form.html
 ├── auth/login.html
+├── account/password.html    # 비밀번호 변경 (mustChangePassword 강제 이동 대상)
 └── common/coming-soon.html  # v2 기능 공용 "준비 중"
 static/css/
 ├── tokens.css               # 디자인 토큰만
@@ -119,8 +124,12 @@ static/css/
 
 ```
 Member
-  id, loginId(unique), password(BCrypt), name(실명), role, active(boolean, 비활성 계정은 로그인 불가)
-  + 메서드: resetPassword(encodedPassword), deactivate()
+  id, loginId(unique, 변경 불가), password(BCrypt), name(실명), role,
+  active(boolean, 비활성 계정은 로그인 불가),
+  mustChangePassword(boolean, true면 로그인 직후 비밀번호 변경 강제)
+  + 메서드: resetPassword(encodedPassword)   # 관리자 초기화 → mustChangePassword = true
+           changePassword(encodedPassword)  # 본인 변경 → mustChangePassword = false
+           deactivate()
 Role (enum)
   ADMIN, INSTRUCTOR, PROFESSOR, STUDENT
 
@@ -145,6 +154,38 @@ NoticeCategory (enum, 한글 라벨 포함)
 모든 엔티티는 `BaseTimeEntity`를 상속한다.
 상태 변경은 Setter 대신 엔티티 메서드로 한다 (예: `lesson.update(...)`, `lesson.addResource(...)`, `notice.pin()`).
 
+### 계정 규칙
+
+**아이디 (`loginId`)**
+- 형식: `역할-기수-번호`
+  | 역할 | 형식 | 예 |
+  |---|---|---|
+  | STUDENT | `s{기수}-{번호 3자리}` | `s3-017` |
+  | INSTRUCTOR | `t{기수}-{번호 2자리}` | `t3-01` |
+  | PROFESSOR | `p{기수}-{번호 2자리}` | `p3-01` |
+  | ADMIN | 고정 이름 | `admin` |
+- 영문 소문자·숫자·하이픈만 허용, 4~20자 (`^[a-z0-9-]{4,20}$`), 중복 불가
+- 생성 후 변경 불가: 아이디를 바꾸는 엔티티 메서드·화면을 만들지 않는다 (`@Column(updatable = false)`)
+- 환경변수로 만드는 첫 ADMIN 아이디도 같은 규칙을 지켜야 한다
+
+**비밀번호 — 시스템 발급 (계정 생성·초기화)**
+- 관리자가 입력하지 않는다. 시스템이 10자 랜덤 비밀번호(영문 대소문자+숫자, 영문·숫자 각 1자 이상)를 `SecureRandom`으로 생성한다
+- 생성 직후 관리자 화면에 **한 번만** 표시한다 (flash attribute로 전달). 로그·세션·DB에 평문을 남기지 않는다
+- DB에는 BCrypt 해시만 저장한다
+- 발급·초기화된 계정은 `mustChangePassword = true`
+
+**비밀번호 — 사용자 변경 (`/account/password`)**
+- 8자 이상, 영문과 숫자를 모두 포함
+- 아이디와 같거나 아이디를 포함하면 거부 (대소문자 무시)
+- 현재 비밀번호 확인 후 변경, 변경되면 `mustChangePassword = false`
+
+**변경 강제 흐름**
+- `mustChangePassword = true`인 사용자는 로그인 성공 직후 `/account/password`로 이동한다
+- 변경 전에는 `/account/password`, `/logout`, 정적 리소스 외 모든 요청을 `/account/password`로 리다이렉트한다
+
+**예외**
+- 첫 ADMIN(환경변수 비밀번호)과 `local` 연습용 계정은 `mustChangePassword = false`로 생성한다
+
 ---
 
 ## 5. URL
@@ -152,6 +193,7 @@ NoticeCategory (enum, 한글 라벨 포함)
 | 메서드 | URL | 설명 | 권한 |
 |---|---|---|---|
 | GET | `/login` | 로그인 | 전체 |
+| GET/POST | `/account/password` | 본인 비밀번호 변경 (`mustChangePassword`면 강제 이동) | 로그인 |
 | GET | `/` | 홈 (`?month=2026-11&date=2026-11-26`) | 로그인 |
 | GET | `/lessons/{date}` | 수업 상세 | 로그인 |
 | GET | `/notices?category=ATTENDANCE` | 공지 목록 (카테고리 없으면 전체) | 로그인 |
@@ -161,8 +203,8 @@ NoticeCategory (enum, 한글 라벨 포함)
 | GET/POST | `/admin/lessons/new`, `/admin/lessons/{id}/edit` | 수업 등록·수정 | ADMIN |
 | POST | `/admin/lessons/{id}/resources` | 아티팩트 링크 추가 (링크만, 파일 업로드 없음) | ADMIN |
 | GET | `/admin/members` | 회원 목록 (비밀번호 초기화·비활성화 버튼 포함) | ADMIN |
-| GET/POST | `/admin/members/new` | 계정 생성 (아이디, 초기 비밀번호, 실명, 역할) | ADMIN |
-| POST | `/admin/members/{id}/...` | 비밀번호 초기화, 계정 비활성화 (세부 경로는 5단계에서 확정) | ADMIN |
+| GET/POST | `/admin/members/new` | 계정 생성 (아이디, 실명, 역할. 비밀번호는 시스템 랜덤 발급 후 한 번만 표시) | ADMIN |
+| POST | `/admin/members/{id}/...` | 비밀번호 초기화(랜덤 재발급, 한 번만 표시), 계정 비활성화 (세부 경로는 5단계에서 확정) | ADMIN |
 | GET | `/coming-soon?feature=chat` | v2 준비 중 페이지 | 로그인 |
 
 ---
@@ -220,7 +262,8 @@ NoticeCategory (enum, 한글 라벨 포함)
 
 - 계정 (자세한 규칙은 1번 "설정 값과 비밀 값")
   - 첫 ADMIN: 환경변수 `BOOTHUB_ADMIN_ID`, `BOOTHUB_ADMIN_PASSWORD`로 생성 (모든 프로필)
-  - 연습용 instructor / student1~3: `local` 프로필에서만 생성 (비밀번호 `1234`, BCrypt 인코딩), 실명 포함
+  - 연습용 강사 `t3-01` / 학생 `s3-001`~`s3-003`: `local` 프로필에서만 생성 (비밀번호 `1234`, BCrypt 인코딩,
+    `mustChangePassword = false`), 실명 포함. 고정 비밀번호는 `local` 연습용에만 허용하는 예외
 - 2026년 11월 수업: 와이어프레임 캘린더와 동일
   - 2 HTML 기초, 3 CSS 기초, 4 Flexbox, 5 Grid, 6 반응형 웹
   - 9 JavaScript, 10 배열과 객체, 11 DOM 조작, 12 이벤트, 13 비동기 처리
@@ -238,10 +281,10 @@ NoticeCategory (enum, 한글 라벨 포함)
 | 단계 | 내용 | 완료 기준 |
 |---|---|---|
 | 1 | 프로젝트 생성, 패키지 구조, 레이아웃(header/sidebar fragment), 디자인 토큰, coming-soon 페이지 | 모든 메뉴 클릭 시 페이지 이동 |
-| 2 | Member, Spring Security 폼 로그인, 시드 계정, 헤더에 실명 표시 | 로그인 안 하면 `/login`으로 이동 |
+| 2 | Member, Spring Security 폼 로그인, 시드 계정, 헤더에 실명 표시, `mustChangePassword` 강제 변경 흐름(`/account/password`) | 로그인 안 하면 `/login`으로 이동, `mustChangePassword` 계정은 변경 전까지 `/account/password`로 이동 |
 | 3 | Lesson, LessonResource, 시드 수업, 홈 캘린더 + 상세 패널 | 와이어프레임과 같은 홈 화면 |
 | 4 | Notice, 카테고리 필터, 필독 배너, 작성 화면 | 사이드바 공지 메뉴 5개 동작 |
-| 5 | 관리자 수업 등록·수정·리소스(링크) 추가, 회원 관리 (계정 생성·비밀번호 초기화·비활성화) | 관리자로 등록한 수업이 캘린더에 반영, 관리자가 만든 계정으로 로그인 가능, 비활성 계정은 로그인 불가 |
+| 5 | 관리자 수업 등록·수정·리소스(링크) 추가, 회원 관리 (계정 생성·비밀번호 초기화 시 랜덤 비밀번호 발급·1회 표시, 비활성화) | 관리자로 등록한 수업이 캘린더에 반영, 관리자가 만든 계정으로 로그인 → 비밀번호 변경 강제, 비활성 계정은 로그인 불가 |
 | 6 | README (스크린샷, 구조, v2 로드맵) | — |
 
 ---
