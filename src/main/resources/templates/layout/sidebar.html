@@ -61,10 +61,10 @@
                    th:classappend="${currentPath == '/coming-soon' and param.feature != null and param.feature[0] == 'qna'} ? 'is-active'">학습 Q&amp;A</a></li>
         </ul>
 
-        <hr class="nav-divider">
+        <!--/* 관리자 메뉴: ADMIN 에게만 노출 */-->
+        <hr class="nav-divider" th:if="${loginUser != null and loginUser.admin}">
 
-        <!-- 관리자 (2단계에서 권한별 노출 처리) -->
-        <a class="nav-top" th:href="@{/admin/lessons}"
+        <a class="nav-top" th:if="${loginUser != null and loginUser.admin}" th:href="@{/admin/lessons}"
            th:classappend="${#strings.startsWith(currentPath, '/admin')} ? 'is-active'">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

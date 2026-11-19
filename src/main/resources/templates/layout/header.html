@@ -28,15 +28,22 @@
                     <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
                 </svg>
             </a>
-            <!--/* 2단계: 로그인 사용자 실명 + 로그아웃 메뉴로 확장 */-->
-            <span class="header-icon" title="내 계정" aria-label="내 계정">
+        </div>
+
+        <div class="header-user" th:if="${loginUser != null}">
+            <span class="header-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                     stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"/>
                     <circle cx="12" cy="10" r="3"/>
                     <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/>
                 </svg>
             </span>
+            <span class="header-user-name" th:text="${loginUser.name}">홍길동</span>
+            <span class="header-user-role" th:text="${loginUser.roleLabel}">수강생</span>
+            <form class="header-logout" th:action="@{/logout}" method="post">
+                <button type="submit" class="header-logout-btn">로그아웃</button>
+            </form>
         </div>
     </div>
 </header>

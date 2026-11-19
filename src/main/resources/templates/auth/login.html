@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--/* 로그인 화면. 헤더·사이드바 없이 단독 레이아웃을 쓴다. */-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>로그인 · BootHub</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" th:href="@{/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="login-page">
+    <section class="card login-card">
+        <div class="login-brand">
+            <span class="logo-mark" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/>
+                    <path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/>
+                </svg>
+            </span>
+            <span class="logo-text">BootHub</span>
+        </div>
+        <p class="login-desc">우리의 배움이 쌓이는 공간</p>
+
+        <p class="login-alert is-error" th:if="${param.error != null}">아이디 또는 비밀번호가 올바르지 않아요.</p>
+        <p class="login-alert" th:if="${param.logout != null}">로그아웃되었어요.</p>
+
+        <form class="login-form" th:action="@{/login}" method="post">
+            <label class="form-field">
+                <span class="form-label">아이디</span>
+                <input class="form-input" type="text" name="loginId" autocomplete="username" required autofocus>
+            </label>
+            <label class="form-field">
+                <span class="form-label">비밀번호</span>
+                <input class="form-input" type="password" name="password" autocomplete="current-password" required>
+            </label>
+            <button type="submit" class="btn btn-primary login-submit">로그인</button>
+        </form>
+
+        <p class="login-help">계정은 관리자가 발급해요. 로그인이 안 되면 운영진에게 문의해 주세요.</p>
+    </section>
+</main>
+</body>
+</html>

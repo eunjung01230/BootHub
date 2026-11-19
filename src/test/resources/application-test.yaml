@@ -1,0 +1,8 @@
+# 테스트 전용: 파일 DB 대신 메모리 DB (실행 중인 앱과 DB 잠금 충돌 방지)
+spring:
+  datasource:
+    url: jdbc:h2:mem:boothub-test;DB_CLOSE_DELAY=-1
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
