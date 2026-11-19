@@ -1,4 +1,5 @@
 # 테스트 전용: 파일 DB 대신 메모리 DB (실행 중인 앱과 DB 잠금 충돌 방지)
+# 관리자 계정·외부 링크 더미 값은 IntegrationTest 애너테이션에 둔다 (환경변수보다 우선하도록)
 spring:
   datasource:
     url: jdbc:h2:mem:boothub-test;DB_CLOSE_DELAY=-1

@@ -40,3 +40,7 @@ out/
 data/
 ### Playwright MCP (브라우저 확인용 스크린샷) ###
 .playwright-mcp/
+
+### 로컬 전용 설정 (외부 링크 등 환경별 값) ###
+application-local.yml
+application-local.yaml

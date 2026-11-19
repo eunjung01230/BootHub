@@ -105,7 +105,13 @@ h1, h2, h3, p { margin: 0; }
   white-space: nowrap;
 }
 
-.header-link:hover { color: var(--color-navy); text-decoration: underline; }
+a.header-link:hover { color: var(--color-navy); text-decoration: underline; }
+
+/* 주소가 설정되지 않은 링크 */
+.header-link.is-disabled {
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
 
 .header-icons {
   display: flex;

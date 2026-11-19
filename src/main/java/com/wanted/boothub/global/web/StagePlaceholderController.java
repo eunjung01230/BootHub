@@ -26,7 +26,7 @@ public class StagePlaceholderController {
     @GetMapping("/admin/lessons")
     public String adminLessons(Model model) {
         model.addAttribute("comingSoon",
-                new ComingSoonView("관리자", "수업 등록·수정과 아티팩트 링크 추가 화면이 곧 열려요.", "5단계 예정"));
+                new ComingSoonView("관리자", "수업 등록·수정, 아티팩트 링크 추가, 회원 관리 화면이 곧 열려요.", "5단계 예정"));
         return VIEW;
     }
 }

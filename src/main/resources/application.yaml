@@ -18,9 +18,11 @@ spring:
   thymeleaf:
     cache: false
 
-# 헤더 고정 외부 링크 (실제 워크스페이스 주소로 교체)
+# 헤더 고정 외부 링크. 실제 주소는 환경변수(BOOTHUB_LINKS_SLACK / _GITHUB / _NOTION)
+# 또는 git 에 올리지 않는 application-local.yaml 에서 넣는다. 값이 없으면 헤더에 비활성으로 보인다.
+# 첫 관리자 계정(boothub.admin.*)은 환경변수 BOOTHUB_ADMIN_ID, BOOTHUB_ADMIN_PASSWORD 로만 받는다.
 boothub:
   links:
-    slack: https://slack.com
-    github: https://github.com
-    notion: https://www.notion.so
+    slack: ${BOOTHUB_LINKS_SLACK:}
+    github: ${BOOTHUB_LINKS_GITHUB:}
+    notion: ${BOOTHUB_LINKS_NOTION:}
