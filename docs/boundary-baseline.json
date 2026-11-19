@@ -1,0 +1,321 @@
+{
+  "base_package": "com.wanted.boothub",
+  "kernel": [
+    "global"
+  ],
+  "assembly": [
+    "admin",
+    "home"
+  ],
+  "summary": {
+    "classes": 59,
+    "lines": 2703,
+    "domains": 6,
+    "cross_domain_imports": 19,
+    "cross_domain_imports_core": 5,
+    "cross_domain_imports_from_assembly": 14,
+    "kernel_to_domain_imports": 4,
+    "service_injections": 10,
+    "cross_domain_injections": 7,
+    "cross_domain_repository_injections": 1,
+    "classes_ctor_params_ge5": 11,
+    "cycle_pairs": 0
+  },
+  "domain_list": [
+    "admin",
+    "global",
+    "home",
+    "lesson",
+    "member",
+    "notice"
+  ],
+  "cross_domain_pairs_top10": [
+    {
+      "from": "admin",
+      "to": "member",
+      "imports": 5
+    },
+    {
+      "from": "notice",
+      "to": "member",
+      "imports": 5
+    },
+    {
+      "from": "admin",
+      "to": "lesson",
+      "imports": 4
+    },
+    {
+      "from": "home",
+      "to": "lesson",
+      "imports": 4
+    },
+    {
+      "from": "home",
+      "to": "notice",
+      "imports": 1
+    }
+  ],
+  "kernel_to_domain": [
+    {
+      "from": "src/main/java/com/wanted/boothub/global/config/SecurityConfig.java",
+      "import": "com.wanted.boothub.member.LoginSuccessHandler"
+    },
+    {
+      "from": "src/main/java/com/wanted/boothub/global/config/SecurityConfig.java",
+      "import": "com.wanted.boothub.member.PasswordChangeRequiredFilter"
+    },
+    {
+      "from": "src/main/java/com/wanted/boothub/global/web/GlobalModelAdvice.java",
+      "import": "com.wanted.boothub.member.LoginUser"
+    },
+    {
+      "from": "src/main/java/com/wanted/boothub/global/web/GlobalModelAdvice.java",
+      "import": "com.wanted.boothub.member.dto.LoginUserDto"
+    }
+  ],
+  "cross_domain_injections": [
+    {
+      "class": "AdminController",
+      "domain": "admin",
+      "injects": "LessonService",
+      "target_domain": "lesson",
+      "layer": "controller",
+      "assembly": true,
+      "repository": false
+    },
+    {
+      "class": "AdminController",
+      "domain": "admin",
+      "injects": "MemberService",
+      "target_domain": "member",
+      "layer": "controller",
+      "assembly": true,
+      "repository": false
+    },
+    {
+      "class": "HomeController",
+      "domain": "home",
+      "injects": "CalendarService",
+      "target_domain": "lesson",
+      "layer": "controller",
+      "assembly": true,
+      "repository": false
+    },
+    {
+      "class": "HomeController",
+      "domain": "home",
+      "injects": "LessonService",
+      "target_domain": "lesson",
+      "layer": "controller",
+      "assembly": true,
+      "repository": false
+    },
+    {
+      "class": "HomeController",
+      "domain": "home",
+      "injects": "NoticeService",
+      "target_domain": "notice",
+      "layer": "controller",
+      "assembly": true,
+      "repository": false
+    },
+    {
+      "class": "NoticeSeeder",
+      "domain": "notice",
+      "injects": "MemberService",
+      "target_domain": "member",
+      "layer": "other",
+      "assembly": false,
+      "repository": false
+    },
+    {
+      "class": "NoticeService",
+      "domain": "notice",
+      "injects": "MemberRepository",
+      "target_domain": "member",
+      "layer": "service",
+      "assembly": false,
+      "repository": true
+    }
+  ],
+  "ctor_params_ge5": [
+    {
+      "class": "LessonDetailDto",
+      "domain": "lesson",
+      "params": 9,
+      "kind": "record"
+    },
+    {
+      "class": "CalendarDayDto",
+      "domain": "lesson",
+      "params": 8,
+      "kind": "record"
+    },
+    {
+      "class": "MemberSummaryDto",
+      "domain": "member",
+      "params": 8,
+      "kind": "record"
+    },
+    {
+      "class": "NoticeDetailDto",
+      "domain": "notice",
+      "params": 8,
+      "kind": "record"
+    },
+    {
+      "class": "AdminLessonRowDto",
+      "domain": "lesson",
+      "params": 7,
+      "kind": "record"
+    },
+    {
+      "class": "LoginUser",
+      "domain": "member",
+      "params": 7,
+      "kind": "class"
+    },
+    {
+      "class": "CalendarMonthDto",
+      "domain": "lesson",
+      "params": 6,
+      "kind": "record"
+    },
+    {
+      "class": "NoticeSummaryDto",
+      "domain": "notice",
+      "params": 6,
+      "kind": "record"
+    },
+    {
+      "class": "Lesson",
+      "domain": "lesson",
+      "params": 5,
+      "kind": "class"
+    },
+    {
+      "class": "LessonResource",
+      "domain": "lesson",
+      "params": 5,
+      "kind": "class"
+    },
+    {
+      "class": "Member",
+      "domain": "member",
+      "params": 5,
+      "kind": "class"
+    }
+  ],
+  "cycle_pairs": [],
+  "cycle_components": [],
+  "most_tangled_top5": [
+    {
+      "file": "src/main/java/com/wanted/boothub/admin/AdminController.java",
+      "out": 9,
+      "in": 0,
+      "score": 9
+    },
+    {
+      "file": "src/main/java/com/wanted/boothub/home/HomeController.java",
+      "out": 5,
+      "in": 0,
+      "score": 5
+    },
+    {
+      "file": "src/main/java/com/wanted/boothub/member/LoginUser.java",
+      "out": 0,
+      "in": 3,
+      "score": 3
+    },
+    {
+      "file": "src/main/java/com/wanted/boothub/notice/NoticeService.java",
+      "out": 2,
+      "in": 1,
+      "score": 3
+    },
+    {
+      "file": "src/main/java/com/wanted/boothub/global/config/SecurityConfig.java",
+      "out": 2,
+      "in": 0,
+      "score": 2
+    }
+  ],
+  "git": {
+    "commits_total": 17,
+    "commits_touching_domains": 9,
+    "avg_domains_per_commit": 2.22,
+    "cochange_top10": [
+      {
+        "pair": [
+          "lesson",
+          "member"
+        ],
+        "commits": 3
+      },
+      {
+        "pair": [
+          "member",
+          "notice"
+        ],
+        "commits": 3
+      },
+      {
+        "pair": [
+          "lesson",
+          "notice"
+        ],
+        "commits": 2
+      },
+      {
+        "pair": [
+          "admin",
+          "lesson"
+        ],
+        "commits": 2
+      },
+      {
+        "pair": [
+          "admin",
+          "member"
+        ],
+        "commits": 2
+      },
+      {
+        "pair": [
+          "home",
+          "member"
+        ],
+        "commits": 2
+      },
+      {
+        "pair": [
+          "home",
+          "notice"
+        ],
+        "commits": 2
+      },
+      {
+        "pair": [
+          "home",
+          "lesson"
+        ],
+        "commits": 2
+      },
+      {
+        "pair": [
+          "admin",
+          "home"
+        ],
+        "commits": 1
+      },
+      {
+        "pair": [
+          "admin",
+          "notice"
+        ],
+        "commits": 1
+      }
+    ]
+  }
+}

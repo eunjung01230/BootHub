@@ -70,7 +70,7 @@ com.wanted.boothub
 │   ├── common          # BaseTimeEntity (createdAt, updatedAt)
 │   ├── exception       # BusinessException(규칙 위반 → 폼 오류), NotFoundException(@ResponseStatus 404)
 │   │                   # GlobalExceptionHandler — v2 예정 (아직 없음. 지금은 Spring Boot 기본 /error + templates/error)
-│   └── web             # GlobalModelAdvice(외부 링크·로그인 사용자·현재 경로), ExternalLinkProperties,
+│   └── web             # GlobalModelAdvice(외부 링크·현재 경로), ExternalLinkProperties,
 │                       # ComingSoonController, ComingSoonFeature, ComingSoonView (v2 "준비 중" 페이지)
 ├── member
 │   ├── Member, Role
@@ -80,9 +80,11 @@ com.wanted.boothub
 │   ├── AdminAccountProperties  # BOOTHUB_ADMIN_ID / BOOTHUB_ADMIN_PASSWORD 바인딩
 │   ├── LoginController      # /login 화면
 │   ├── LoginUser, LoginUserDetailsService
+│   ├── LoginUserModelAdvice # 모든 화면에 loginUser(헤더 실명·관리자 메뉴) 넣기
 │   ├── PasswordGenerator    # 10자 랜덤 비밀번호 생성 (계정 생성·초기화)
 │   ├── PasswordPolicy       # 사용자 비밀번호 검증 규칙
 │   ├── PasswordChangeRequiredFilter, LoginSuccessHandler  # mustChangePassword 강제 이동
+│   ├── PasswordChangeSecurityCustomizer  # Customizer<HttpSecurity> 빈으로 위 필터를 모든 보안 체인에 넣기
 │   ├── AccountController    # /account/password (본인 비밀번호 변경)
 │   ├── MemberSessionExpirer # 비활성화·비밀번호 초기화한 회원의 로그인 세션 끊기 (SessionRegistry)
 │   └── dto                  # LoginUserDto, MemberSummaryDto, MemberForm, PasswordChangeForm, IssuedPasswordDto
@@ -110,6 +112,11 @@ com.wanted.boothub
 
 v2에서 추가될 패키지: `material`(AI 정리·퀴즈), `showcase`, `chat`, `qna`, `sync`.
 **새 기능은 새 패키지로 추가하고, 기존 도메인 코드는 최소한만 건드린다.**
+
+경계 규칙 (`src/test/java/.../architecture/ArchitectureTest.java`가 검사):
+- `global`은 공용 커널. 도메인은 global을 써도 되지만 global은 도메인 클래스를 import하지 않는다
+- Service는 다른 도메인의 Repository를 주입받지 않는다. 다른 도메인 데이터는 그 도메인 Service로 받는다
+- `admin`·`home`은 화면 조립 계층. 다른 도메인 Service·DTO만 쓰고 Repository·엔티티는 직접 쓰지 않는다
 
 ### templates 구조
 ```
