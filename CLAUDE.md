@@ -65,31 +65,41 @@ v2 항목은 사이드바 메뉴와 버튼만 존재하고, 누르면 "준비 �
 ```
 com.wanted.boothub
 ├── global
-│   ├── config          # SecurityConfig, WebConfig
+│   ├── config          # SecurityConfig, JpaAuditingConfig, ClockConfig(한국 시간 기준 "오늘")
+│   │                   # WebConfig — v2 예정 (아직 없음)
 │   ├── common          # BaseTimeEntity (createdAt, updatedAt)
-│   ├── exception       # 공통 예외, GlobalExceptionHandler
-│   └── web             # 공통 모델 속성 (외부 링크, 로그인 사용자) ControllerAdvice
+│   ├── exception       # BusinessException(규칙 위반 → 폼 오류), NotFoundException(@ResponseStatus 404)
+│   │                   # GlobalExceptionHandler — v2 예정 (아직 없음. 지금은 Spring Boot 기본 /error + templates/error)
+│   └── web             # GlobalModelAdvice(외부 링크·로그인 사용자·현재 경로), ExternalLinkProperties,
+│                       # ComingSoonController, ComingSoonFeature, ComingSoonView (v2 "준비 중" 페이지)
 ├── member
 │   ├── Member, Role
 │   ├── MemberRepository
 │   ├── MemberService
-│   ├── LoginUserDetailsService
+│   ├── MemberSeeder         # 첫 ADMIN(환경변수) + local 연습용 계정
+│   ├── AdminAccountProperties  # BOOTHUB_ADMIN_ID / BOOTHUB_ADMIN_PASSWORD 바인딩
+│   ├── LoginController      # /login 화면
+│   ├── LoginUser, LoginUserDetailsService
 │   ├── PasswordGenerator    # 10자 랜덤 비밀번호 생성 (계정 생성·초기화)
 │   ├── PasswordPolicy       # 사용자 비밀번호 검증 규칙
 │   ├── PasswordChangeRequiredFilter, LoginSuccessHandler  # mustChangePassword 강제 이동
-│   └── AccountController    # /account/password (본인 비밀번호 변경)
+│   ├── AccountController    # /account/password (본인 비밀번호 변경)
+│   └── dto                  # LoginUserDto, MemberSummaryDto, MemberForm, PasswordChangeForm, IssuedPasswordDto
 ├── lesson
 │   ├── Lesson, LessonResource, ResourceType
 │   ├── LessonRepository, LessonResourceRepository
 │   ├── LessonService
+│   ├── LessonSeeder         # 2026년 11월 시드 수업
 │   ├── CalendarService      # 월간 캘린더 데이터 생성
-│   ├── dto                  # CalendarDayDto, LessonDetailDto
+│   ├── dto                  # CalendarMonthDto, CalendarDayDto, LessonDetailDto, AdminLessonRowDto,
+│   │                        # LessonForm, LessonResourceForm
 │   └── LessonController
 ├── notice
 │   ├── Notice, NoticeCategory
 │   ├── NoticeRepository
 │   ├── NoticeService
-│   ├── dto
+│   ├── NoticeSeeder         # 시드 공지 (필독 1개 포함)
+│   ├── dto                  # NoticeSummaryDto, NoticeDetailDto, NoticeBannerDto, NoticeForm
 │   └── NoticeController
 ├── admin
 │   └── AdminController      # 관리자 화면 전용, 로직은 각 도메인 Service 호출
@@ -113,7 +123,10 @@ templates/
 ├── admin/lessons.html, lesson-form.html, members.html, member-form.html
 ├── auth/login.html
 ├── account/password.html    # 비밀번호 변경 (mustChangePassword 강제 이동 대상)
-└── common/coming-soon.html  # v2 기능 공용 "준비 중"
+├── common/coming-soon.html  # v2 기능 공용 "준비 중"
+└── error/                   # Spring Boot 기본 오류 처리(/error)가 상태 코드로 고르는 화면
+    ├── 404.html, 500.html   # 공통 레이아웃 + 디자인 토큰
+    └── 4xx.html, 5xx.html   # 그 밖의 4xx(400·403 등) / 5xx
 static/css/
 ├── tokens.css               # 디자인 토큰만
 └── app.css                  # 컴포넌트 스타일

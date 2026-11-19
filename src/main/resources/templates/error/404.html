@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--/*
+  404 오류 화면. Spring Boot 기본 오류 처리(/error)가 상태 코드와 같은 이름의 템플릿을 먼저 고른다.
+  (404 → error/404.html, 그 밖의 4xx → error/4xx.html)
+  모델: status, error, path. 헤더·사이드바가 있는 공통 레이아웃 안에서 준비 중 화면과 같은 카드 스타일로 그린다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::main}, ~{})}">
+<head>
+    <title>페이지를 찾을 수 없어요 · BootHub</title>
+</head>
+<body>
+<main class="app-main">
+    <section class="card coming-soon">
+        <span class="coming-soon-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.3-4.3"/>
+                <path d="M8.5 8.5l5 5M13.5 8.5l-5 5"/>
+            </svg>
+        </span>
+        <span class="badge">404</span>
+        <h1 class="coming-soon-title">페이지를 찾을 수 없어요</h1>
+        <p class="coming-soon-desc">
+            주소가 바뀌었거나, 해당 날짜에 등록된 수업이 없어요.<br>
+            캘린더에서 날짜를 다시 골라 주세요.
+        </p>
+        <div class="coming-soon-actions">
+            <a class="btn btn-primary" th:href="@{/}">홈으로</a>
+            <a class="btn btn-outline" th:href="@{/notices}">공지 보기</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>
