@@ -302,12 +302,41 @@ h1, h2, h3, p { margin: 0; }
   font-weight: 600;
 }
 
-/* ---------- 홈 (1단계 자리 표시) ---------- */
+.badge.is-pink { background: var(--color-pink-soft); }
+.badge.is-green { background: var(--color-ivory); color: var(--color-navy); gap: 6px; }
+
+/* 초록 글자는 대비가 낮아 글자는 네이비로, 초록은 점으로만 쓴다 */
+.badge.is-green::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-green);
+}
+
+.text-link {
+  color: var(--color-navy);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.text-link:hover { text-decoration: underline; }
+
+.section-title {
+  margin-top: 28px;
+  color: var(--color-navy);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ---------- 홈 ---------- */
 .home-stack {
   display: grid;
   gap: var(--layout-gap);
 }
 
+/* 4단계 전까지 남는 자리 표시 (필독 배너) */
 .placeholder {
   display: grid;
   place-items: center;
@@ -324,9 +353,302 @@ h1, h2, h3, p { margin: 0; }
   background: var(--color-pink-soft);
 }
 
-.placeholder.is-calendar { min-height: 420px; scroll-margin-top: calc(var(--header-height) + 24px); }
-.placeholder.is-panel { min-height: 180px; }
-.placeholder.is-card { min-height: 100px; }
+/* ---------- 캘린더 ---------- */
+.calendar {
+  scroll-margin-top: calc(var(--header-height) + 24px);
+}
+
+.calendar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.calendar-title {
+  color: var(--color-navy);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.calendar-arrow {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-cell);
+  color: var(--color-navy);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.calendar-arrow:hover { background: var(--color-white); }
+
+.calendar-caption {
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.calendar-grid + .calendar-grid { margin-top: 6px; }
+
+.calendar-weekdays span {
+  padding: 4px 0;
+  color: var(--color-text);
+  font-size: 13px;
+  text-align: center;
+}
+
+.calendar-weekdays .is-sunday { color: var(--color-sunday); }
+
+/* 날짜 칸: 높이 고정, 수업명 한 줄 말줄임 */
+.calendar-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 66px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-cell);
+  background: var(--color-white);
+  overflow: hidden;
+  transition: border-color .15s;
+}
+
+a.calendar-cell:hover { border-color: var(--color-blue); }
+
+.calendar-cell.is-blank {
+  border-color: transparent;
+  background: transparent;
+}
+
+.calendar-cell.is-important { background: var(--color-pink-soft); }
+
+.calendar-cell.is-selected {
+  border: 2px solid var(--color-navy);
+  padding: 7px 9px;
+  background: var(--color-blue-soft);
+}
+
+.calendar-day {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.calendar-day.is-sunday { color: var(--color-sunday); }
+
+.calendar-cell.is-selected .calendar-day { font-weight: 700; }
+
+.calendar-lesson {
+  overflow: hidden;
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.calendar-dot {
+  width: 6px;
+  height: 6px;
+  margin-top: auto;
+  border-radius: 50%;
+  background: var(--color-green);
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 12px;
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-dot.is-green { background: var(--color-green); }
+.legend-dot.is-blue { background: var(--color-blue); }
+.legend-dot.is-pink { background: var(--color-pink); }
+
+/* ---------- 선택 날짜 상세 패널 ---------- */
+.lesson-panel { padding: 20px 24px; }
+
+.lesson-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lesson-panel-title {
+  color: var(--color-navy);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.lesson-panel-desc {
+  margin-top: 6px;
+  color: var(--color-muted);
+}
+
+.lesson-panel-empty {
+  margin-top: 10px;
+  color: var(--color-muted);
+}
+
+.lesson-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* 와이어프레임: 테두리 없는 연한 블루 버튼 */
+.lesson-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-cell);
+  background: var(--color-blue-soft);
+  color: var(--color-navy);
+  font-size: 14px;
+  font-weight: 600;
+  transition: border-color .15s;
+}
+
+a.lesson-action:hover { border-color: var(--color-navy); }
+
+.lesson-action.is-disabled {
+  color: var(--color-muted);
+  font-weight: 500;
+}
+
+a.lesson-action.is-disabled:hover { border-color: var(--color-blue); }
+
+span.lesson-action.is-disabled { cursor: not-allowed; }
+
+.lesson-action-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.lesson-action-tag {
+  margin-left: auto;
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ---------- 하단 "곧 열려요" 카드 ---------- */
+.soon-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 24px;
+  transition: border-color .15s;
+}
+
+.soon-card:hover { border-color: var(--color-navy); }
+
+.soon-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.soon-card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.soon-card-desc {
+  color: var(--color-muted);
+}
+
+/* ---------- 수업 상세 ---------- */
+.back-link {
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.lesson-detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--color-muted);
+}
+
+.lesson-detail-desc {
+  margin-top: 10px;
+  line-height: 1.7;
+}
+
+.resource-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resource-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-cell);
+  background: var(--color-ivory);
+}
+
+.resource-type {
+  flex: none;
+  min-width: 92px;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.resource-link {
+  overflow: hidden;
+  color: var(--color-navy);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.resource-link:hover { text-decoration: underline; }
 
 /* ---------- 준비 중 ---------- */
 .coming-soon {
@@ -462,4 +784,34 @@ h1, h2, h3, p { margin: 0; }
   .header-right { gap: 12px; }
   .header-links { gap: 10px; }
   .header-user-role { display: none; }
+
+  .calendar-grid { gap: 4px; }
+  .calendar-grid + .calendar-grid { margin-top: 4px; }
+  .calendar-cell { height: 56px; padding: 6px; }
+  .calendar-cell.is-selected { padding: 5px; }
+  .calendar-lesson { font-size: 11px; }
+
+  .lesson-actions { grid-template-columns: 1fr; }
+}
+
+/* 휴대폰 폭: 헤더를 두 줄로 (로고 / 링크·사용자) */
+@media (max-width: 560px) {
+  .app-header {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    height: auto;
+    padding: 10px 0;
+  }
+
+  .header-right {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .header-user-name { font-size: 13px; }
+
+  /* 헤더가 두 줄이 되므로 #calendar 이동 시 제목이 가려지지 않게 여백을 늘린다 */
+  .calendar { scroll-margin-top: 120px; }
 }

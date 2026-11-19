@@ -16,6 +16,20 @@ AI 코딩 도구는 작업 전에 이 파일을 반드시 읽고, 여기 적힌 
 - 프론트: Thymeleaf + 순수 CSS (CSS 변수). 프레임워크·외부 JS 라이브러리 사용 금지
 - 폰트: Pretendard (CDN 링크 1개만 예외로 허용)
 
+### 설정 값과 비밀 값
+- **외부 링크 (Slack, GitHub, Notion)**
+  - URL을 템플릿이나 코드에 직접 쓰지 않는다
+  - `application.yaml`에는 `boothub.links.slack` 같은 키만 두고, 실제 값은 환경변수
+    (`BOOTHUB_LINKS_SLACK`, `BOOTHUB_LINKS_GITHUB`, `BOOTHUB_LINKS_NOTION`) 또는
+    git에 올리지 않는 `application-local.yml`에서 읽는다
+  - `application-local.yml`(`.yaml` 포함)은 `.gitignore`에 넣는다
+- **관리자 계정**
+  - 첫 ADMIN 계정은 `CommandLineRunner`로, 회원 테이블이 비어 있을 때만 생성한다
+  - 관리자 아이디·비밀번호는 환경변수 `BOOTHUB_ADMIN_ID`, `BOOTHUB_ADMIN_PASSWORD`에서 읽는다.
+    코드와 설정 파일에 비밀번호를 쓰지 않는다
+  - 회원 테이블이 비어 있는데 환경변수가 없으면 앱 시작을 실패시키고 이유를 로그로 알린다
+  - 연습용 계정(instructor, student1~3) 시드는 `local` 프로필에서만 생성한다
+
 ---
 
 ## 2. 범위
@@ -26,9 +40,9 @@ AI 코딩 도구는 작업 전에 이 파일을 반드시 읽고, 여기 적힌 
 | 공통 레이아웃 | 헤더(로고, Slack/GitHub/Notion 고정 링크), 좌측 사이드바, 디자인 토큰 |
 | 로그인 | 회원가입 없음. 관리자가 발급한 계정만 로그인. 실명 표시 |
 | 홈 | 필독 공지 배너, 월간 수업 캘린더, 선택 날짜 상세 패널 |
-| 수업 | 날짜별 수업, GitHub 링크, 강사 아티팩트 링크 |
+| 수업 | 날짜별 수업, GitHub 링크, 강사 아티팩트 링크 (링크 등록만, 파일 업로드 없음) |
 | 공지 | 카테고리별 게시판 (출석/평가/커리큘럼/연락처/공지 Q&A), 필독 고정 |
-| 관리자 | 수업 등록·수정, 아티팩트 링크 추가, 공지 작성 |
+| 관리자 | 수업 등록·수정, 아티팩트 링크 추가, 공지 작성, 회원 관리 (계정 생성·비밀번호 초기화·비활성화) |
 
 ### v2 (지금은 만들지 않는다 — 자리만 비워둔다)
 - AI 수업 정리 (코드·주석 기반 표/구조 그림)
@@ -39,6 +53,7 @@ AI 코딩 도구는 작업 전에 이 파일을 반드시 읽고, 여기 적힌 
 - 학습 Q&A / 수업 Q&A
 - 수업 종료 시 GitHub 자동 동기화
 - 세부 열람 권한 (현재는 로그인 = 열람 허가)
+- 파일 업로드 (MVP에서 아티팩트는 링크 등록만 한다)
 
 v2 항목은 사이드바 메뉴와 버튼만 존재하고, 누르면 "준비 중" 페이지를 보여준다.
 
@@ -90,7 +105,7 @@ templates/
 ├── home/index.html
 ├── lesson/detail.html
 ├── notice/list.html, detail.html, form.html
-├── admin/lessons.html, lesson-form.html
+├── admin/lessons.html, lesson-form.html, members.html, member-form.html
 ├── auth/login.html
 └── common/coming-soon.html  # v2 기능 공용 "준비 중"
 static/css/
@@ -104,7 +119,8 @@ static/css/
 
 ```
 Member
-  id, loginId(unique), password(BCrypt), name(실명), role
+  id, loginId(unique), password(BCrypt), name(실명), role, active(boolean, 비활성 계정은 로그인 불가)
+  + 메서드: resetPassword(encodedPassword), deactivate()
 Role (enum)
   ADMIN, INSTRUCTOR, PROFESSOR, STUDENT
 
@@ -143,7 +159,10 @@ NoticeCategory (enum, 한글 라벨 포함)
 | GET/POST | `/admin/notices/new` | 공지 작성 | ADMIN, INSTRUCTOR |
 | GET | `/admin/lessons` | 수업 관리 목록 | ADMIN |
 | GET/POST | `/admin/lessons/new`, `/admin/lessons/{id}/edit` | 수업 등록·수정 | ADMIN |
-| POST | `/admin/lessons/{id}/resources` | 아티팩트 링크 추가 | ADMIN |
+| POST | `/admin/lessons/{id}/resources` | 아티팩트 링크 추가 (링크만, 파일 업로드 없음) | ADMIN |
+| GET | `/admin/members` | 회원 목록 (비밀번호 초기화·비활성화 버튼 포함) | ADMIN |
+| GET/POST | `/admin/members/new` | 계정 생성 (아이디, 초기 비밀번호, 실명, 역할) | ADMIN |
+| POST | `/admin/members/{id}/...` | 비밀번호 초기화, 계정 비활성화 (세부 경로는 5단계에서 확정) | ADMIN |
 | GET | `/coming-soon?feature=chat` | v2 준비 중 페이지 | 로그인 |
 
 ---
@@ -177,6 +196,7 @@ NoticeCategory (enum, 한글 라벨 포함)
   --color-blue:  #91ABC9;   /* 보조 7% */
   --color-green: #83A890;   /* 완료 상태 4% */
   --color-pink:  #F4C6D7;   /* 강조·중요 일정 4% */
+  --color-sunday: #C2566B;  /* 캘린더 일요일 숫자 (붉은 계열) */
   /* 파생 토큰: 연한 배경 (선택 날짜·배지 / 중요 일정·필독 배너) */
   --color-blue-soft: color-mix(in srgb, var(--color-blue) 22%, var(--color-white));
   --color-pink-soft: color-mix(in srgb, var(--color-pink) 35%, var(--color-white));
@@ -198,7 +218,9 @@ NoticeCategory (enum, 한글 라벨 포함)
 
 ## 8. 시드 데이터 (`CommandLineRunner`, 해당 테이블이 비어 있을 때만 삽입)
 
-- 계정: admin / instructor / student1~3 (비밀번호 `1234`, BCrypt 인코딩), 실명 포함
+- 계정 (자세한 규칙은 1번 "설정 값과 비밀 값")
+  - 첫 ADMIN: 환경변수 `BOOTHUB_ADMIN_ID`, `BOOTHUB_ADMIN_PASSWORD`로 생성 (모든 프로필)
+  - 연습용 instructor / student1~3: `local` 프로필에서만 생성 (비밀번호 `1234`, BCrypt 인코딩), 실명 포함
 - 2026년 11월 수업: 와이어프레임 캘린더와 동일
   - 2 HTML 기초, 3 CSS 기초, 4 Flexbox, 5 Grid, 6 반응형 웹
   - 9 JavaScript, 10 배열과 객체, 11 DOM 조작, 12 이벤트, 13 비동기 처리
@@ -219,7 +241,7 @@ NoticeCategory (enum, 한글 라벨 포함)
 | 2 | Member, Spring Security 폼 로그인, 시드 계정, 헤더에 실명 표시 | 로그인 안 하면 `/login`으로 이동 |
 | 3 | Lesson, LessonResource, 시드 수업, 홈 캘린더 + 상세 패널 | 와이어프레임과 같은 홈 화면 |
 | 4 | Notice, 카테고리 필터, 필독 배너, 작성 화면 | 사이드바 공지 메뉴 5개 동작 |
-| 5 | 관리자 수업 등록·수정·리소스 추가 | 관리자로 등록한 수업이 캘린더에 반영 |
+| 5 | 관리자 수업 등록·수정·리소스(링크) 추가, 회원 관리 (계정 생성·비밀번호 초기화·비활성화) | 관리자로 등록한 수업이 캘린더에 반영, 관리자가 만든 계정으로 로그인 가능, 비활성 계정은 로그인 불가 |
 | 6 | README (스크린샷, 구조, v2 로드맵) | — |
 
 ---
@@ -232,6 +254,8 @@ NoticeCategory (enum, 한글 라벨 포함)
 - 엔티티를 템플릿에 직접 넘기지 않고, 화면용 데이터는 dto로 만든다
 - 외부 CSS/JS 프레임워크를 추가하지 않는다 (Pretendard 폰트 CDN만 예외)
 - Spring Boot 3 이하 방식(WebSecurityConfigurerAdapter, and() 체이닝 등)을 사용하지 않는다
+- 외부 URL·비밀번호 같은 환경별 값과 비밀 값을 코드·템플릿·커밋되는 설정 파일에 쓰지 않는다
+- 파일 업로드 기능을 만들지 않는다 (v2). 아티팩트는 링크 등록만 한다
 - 요청 범위 밖의 파일을 임의로 리팩터링하지 않는다
 
 ---

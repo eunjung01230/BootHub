@@ -38,3 +38,5 @@ out/
 
 ### H2 Database ###
 data/
+### Playwright MCP (브라우저 확인용 스크린샷) ###
+.playwright-mcp/

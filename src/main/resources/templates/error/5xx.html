@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--/* 5xx 공통 오류 화면. 레이아웃 렌더링 자체가 실패할 수 있으므로 헤더·사이드바 없이 단독으로 그린다. */-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>오류가 발생했어요 · BootHub</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" th:href="@{/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="login-page">
+    <section class="card coming-soon">
+        <span class="badge" th:text="${status}">500</span>
+        <h1 class="coming-soon-title">일시적인 오류가 발생했어요</h1>
+        <p class="coming-soon-desc">잠시 후 다시 시도해 주세요. 계속되면 운영진에게 알려 주세요.</p>
+        <div class="coming-soon-actions">
+            <a class="btn btn-primary" th:href="@{/}">홈으로</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

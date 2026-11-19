@@ -11,17 +11,170 @@
         <p class="page-desc">오늘도 함께 배우고 성장하는 하루.</p>
     </div>
 
-    <!--/* 1단계: 영역 자리만 잡아둔다. 실제 내용은 3·4단계에서 채운다. */-->
     <div class="home-stack">
+        <!--/* 필독 공지 배너: 4단계에서 채운다 */-->
         <div class="placeholder is-banner">필독 공지 배너 (4단계)</div>
-        <div class="placeholder is-calendar" id="calendar">월간 수업 캘린더 (3단계)</div>
-        <div class="placeholder is-panel">선택 날짜 상세 패널 (3단계)</div>
+
+        <!--/* 월간 수업 캘린더 */-->
+        <section class="calendar" id="calendar" aria-label="수업 캘린더">
+            <div class="calendar-head">
+                <div class="calendar-nav">
+                    <a class="calendar-arrow" th:href="@{/(month=${calendar.prevMonth})} + '#calendar'"
+                       aria-label="이전 달">‹</a>
+                    <h2 class="calendar-title" th:text="${calendar.label}">2026년 11월</h2>
+                    <a class="calendar-arrow" th:href="@{/(month=${calendar.nextMonth})} + '#calendar'"
+                       aria-label="다음 달">›</a>
+                </div>
+                <span class="calendar-caption">수업 캘린더</span>
+            </div>
+
+            <div class="calendar-grid calendar-weekdays" aria-hidden="true">
+                <span class="is-sunday">일</span><span>월</span><span>화</span><span>수</span>
+                <span>목</span><span>금</span><span>토</span>
+            </div>
+
+            <div class="calendar-grid" th:each="week : ${calendar.weeks}">
+                <th:block th:each="day : ${week}">
+                    <span class="calendar-cell is-blank" th:unless="${day.inMonth}"></span>
+                    <a th:if="${day.inMonth}" class="calendar-cell"
+                       th:classappend="${(day.selected ? 'is-selected ' : '') + (day.important ? 'is-important' : '')}"
+                       th:href="@{/(month=${calendar.month}, date=${day.date})} + '#calendar'"
+                       th:title="${day.lessonTitle}"
+                       th:attr="aria-current=${day.selected} ? 'date' : null">
+                        <span class="calendar-day" th:classappend="${day.sunday} ? 'is-sunday'"
+                              th:text="${day.day}">1</span>
+                        <span class="calendar-lesson" th:if="${day.hasLesson()}"
+                              th:text="${day.lessonTitle}">수업명</span>
+                        <span class="calendar-dot" th:if="${day.materialReady}" aria-label="자료 준비 완료"></span>
+                    </a>
+                </th:block>
+            </div>
+
+            <div class="calendar-legend">
+                <span class="legend-item"><span class="legend-dot is-green"></span>자료 준비 완료</span>
+                <span class="legend-item"><span class="legend-dot is-blue"></span>선택 수업</span>
+                <span class="legend-item"><span class="legend-dot is-pink"></span>중요 일정</span>
+            </div>
+        </section>
+
+        <!--/* 선택 날짜 상세 패널 */-->
+        <section class="card lesson-panel" aria-live="polite">
+            <div class="lesson-panel-head">
+                <h2 class="lesson-panel-title">
+                    <span th:text="${selectedDateLabel}">11월 26일 (목)</span>
+                    <th:block th:if="${lesson != null}"> · <span th:text="${lesson.title}">수업명</span></th:block>
+                </h2>
+                <a class="text-link" th:if="${lesson != null}"
+                   th:href="@{/lessons/{date}(date=${lesson.date})}">수업 상세 보기 →</a>
+            </div>
+
+            <p class="lesson-panel-empty" th:if="${lesson == null}">이 날은 등록된 수업이 없어요.</p>
+            <p class="lesson-panel-desc" th:if="${lesson != null and lesson.description != null}"
+               th:text="${lesson.description}">수업 설명</p>
+
+            <!--/*
+              버튼 6개는 항상 보인다.
+              - GitHub 코드, 강사 아티팩트: 자료가 있으면 열리고, 없으면(수업이 없는 날 포함) 비활성
+              - 나머지 4개(v2): 비활성 스타일 + 준비 중 페이지
+            */-->
+            <div class="lesson-actions"
+                 th:with="githubUrl=${lesson != null ? lesson.githubUrl : null},
+                          artifactUrl=${lesson != null ? lesson.artifactUrl : null}">
+                <a class="lesson-action is-disabled" th:href="@{/coming-soon(feature='ai-summary')}">
+                    <svg class="lesson-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/>
+                        <path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/>
+                    </svg>
+                    AI 수업 정리<span class="lesson-action-tag">준비 중</span>
+                </a>
+
+                <a class="lesson-action" th:if="${githubUrl != null}" th:href="${githubUrl}"
+                   target="_blank" rel="noopener noreferrer">
+                    <svg class="lesson-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+                    </svg>
+                    GitHub 코드 ↗
+                </a>
+                <span class="lesson-action is-disabled" th:unless="${githubUrl != null}" aria-disabled="true">
+                    <svg class="lesson-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+                    </svg>
+                    GitHub 코드<span class="lesson-action-tag">자료 없음</span>
+                </span>
+
+                <a class="lesson-action" th:if="${artifactUrl != null}" th:href="${artifactUrl}"
+                   target="_blank" rel="noopener noreferrer">
+                    <svg class="lesson-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+                    </svg>
+                    강사 아티팩트 ↗
+                </a>
+                <span class="lesson-action is-disabled" th:unless="${artifactUrl != null}" aria-disabled="true">
+                    <svg class="lesson-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+                    </svg>
+                    강사 아티팩트<span class="lesson-action-tag">자료 없음</span>
+                </span>
+
+                <a class="lesson-action is-disabled" th:href="@{/coming-soon(feature='quiz')}">
+                    <svg class="lesson-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>
+                    </svg>
+                    복습 퀴즈<span class="lesson-action-tag">준비 중</span>
+                </a>
+                <a class="lesson-action is-disabled" th:href="@{/coming-soon(feature='mini-project')}">
+                    <svg class="lesson-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m18 16 4-4-4-4M6 8l-4 4 4 4M14.5 4l-5 16"/>
+                    </svg>
+                    미니 프로젝트<span class="lesson-action-tag">준비 중</span>
+                </a>
+                <a class="lesson-action is-disabled" th:href="@{/coming-soon(feature='lesson-qna')}">
+                    <svg class="lesson-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/>
+                    </svg>
+                    수업 Q&amp;A<span class="lesson-action-tag">준비 중</span>
+                </a>
+            </div>
+        </section>
     </div>
 </main>
 
 <section class="app-bottom">
-    <div class="placeholder is-card">번개 학습방 · 곧 열려요 (3단계)</div>
-    <div class="placeholder is-card">프로젝트 전시관 · 곧 열려요 (3단계)</div>
+    <a class="card soon-card" th:href="@{/coming-soon(feature='chat')}">
+        <span class="soon-card-head">
+            <span class="soon-card-title">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/>
+                    <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/>
+                </svg>
+                번개 학습방
+            </span>
+            <span class="badge">곧 열려요</span>
+        </span>
+        <span class="soon-card-desc">주제나 질문을 걸고 바로 모여서 함께 공부해요.</span>
+    </a>
+    <a class="card soon-card" th:href="@{/coming-soon(feature='showcase')}">
+        <span class="soon-card-head">
+            <span class="soon-card-title">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+                </svg>
+                프로젝트 전시관
+            </span>
+            <span class="badge is-pink">곧 열려요</span>
+        </span>
+        <span class="soon-card-desc">수강생들이 만든 프로젝트를 모아 구경하고 응원해요.</span>
+    </a>
 </section>
 </body>
 </html>

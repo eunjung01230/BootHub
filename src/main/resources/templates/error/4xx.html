@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--/*
+  4xx 공통 오류 화면 (Spring Boot 기본 오류 처리 /error 가 status 에 맞춰 이 템플릿을 고른다).
+  모델: status, error, path. 준비 중 화면과 같은 카드 스타일을 쓴다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::main}, ~{})}">
+<head>
+    <title>요청을 처리할 수 없어요 · BootHub</title>
+</head>
+<body>
+<main class="app-main">
+    <section class="card coming-soon" th:switch="${status}">
+        <span class="badge" th:text="${status}">404</span>
+        <th:block th:case="404">
+            <h1 class="coming-soon-title">페이지를 찾을 수 없어요</h1>
+            <p class="coming-soon-desc">주소가 바뀌었거나, 해당 날짜에 등록된 수업이 없어요.</p>
+        </th:block>
+        <th:block th:case="403">
+            <h1 class="coming-soon-title">접근 권한이 없어요</h1>
+            <p class="coming-soon-desc">이 화면은 권한이 있는 계정만 볼 수 있어요.</p>
+        </th:block>
+        <th:block th:case="400">
+            <h1 class="coming-soon-title">요청 주소가 올바르지 않아요</h1>
+            <p class="coming-soon-desc">날짜나 주소 형식을 다시 확인해 주세요. (예: /lessons/2026-11-02)</p>
+        </th:block>
+        <th:block th:case="*">
+            <h1 class="coming-soon-title">요청을 처리할 수 없어요</h1>
+            <p class="coming-soon-desc">잠시 후 다시 시도해 주세요.</p>
+        </th:block>
+        <div class="coming-soon-actions">
+            <a class="btn btn-primary" th:href="@{/}">홈으로</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

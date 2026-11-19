@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::main}, ~{})}">
+<head>
+    <title th:text="|${lesson.title} · BootHub|">수업 상세 · BootHub</title>
+</head>
+<body>
+<main class="app-main">
+    <a class="text-link back-link" th:href="@{/(date=${lesson.date})} + '#calendar'">← 캘린더로 돌아가기</a>
+
+    <section class="card lesson-detail">
+        <div class="lesson-detail-meta">
+            <span th:text="${lesson.dateLabel}">11월 26일 (목)</span>
+            <span class="badge is-pink" th:if="${lesson.important}">중요 일정</span>
+            <span class="badge is-green" th:if="${lesson.materialReady}">자료 준비 완료</span>
+        </div>
+        <h1 class="page-title" th:text="${lesson.title}">수업명</h1>
+        <p class="lesson-detail-desc" th:if="${lesson.description != null}" th:text="${lesson.description}">수업 설명</p>
+
+        <h2 class="section-title">수업 자료</h2>
+        <ul class="resource-list" th:if="${lesson.githubUrl != null or !lesson.resources.isEmpty()}">
+            <li class="resource-item" th:if="${lesson.githubUrl != null}">
+                <span class="resource-type">GitHub 코드</span>
+                <a class="resource-link" th:href="${lesson.githubUrl}" target="_blank" rel="noopener noreferrer"
+                   th:text="|${lesson.githubUrl} ↗|">저장소</a>
+            </li>
+            <li class="resource-item" th:each="resource : ${lesson.resources}">
+                <span class="resource-type" th:text="${resource.typeLabel}">강사 아티팩트</span>
+                <a class="resource-link" th:href="${resource.url}" target="_blank" rel="noopener noreferrer"
+                   th:text="|${resource.title} ↗|">자료</a>
+            </li>
+        </ul>
+        <p class="lesson-panel-empty" th:unless="${lesson.githubUrl != null or !lesson.resources.isEmpty()}">
+            아직 등록된 자료가 없어요.
+        </p>
+    </section>
+</main>
+</body>
+</html>
