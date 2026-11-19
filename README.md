@@ -1,0 +1,245 @@
+# BootHub
+
+부트캠프 수강생·강사·관리자를 위한 학습 허브입니다.
+수업 캘린더, 날짜별 수업 자료(GitHub·강사 아티팩트 링크), 카테고리별 공지, 관리자 계정 발급을 한 곳에서 다룹니다.
+
+> 1일 MVP를 먼저 완성하고, v2 기능은 같은 구조 위에 새 패키지로 쌓아 갑니다.
+> 개발 규칙은 [`CLAUDE.md`](CLAUDE.md), v2 AI 모듈 설계는 [`docs/ai-module-spec.md`](docs/ai-module-spec.md)를 참고하세요.
+
+![홈 화면](docs/screenshots/home.png)
+
+---
+
+## 주요 기능 (MVP)
+
+| 기능 | 내용 |
+|---|---|
+| 로그인 | 회원가입 없음. 관리자가 발급한 계정으로만 로그인하고, 헤더에 실명이 표시됩니다 |
+| 홈 | 필독 공지 배너, 서버 렌더링 월간 캘린더, 선택한 날짜의 수업 상세 패널 |
+| 수업 | 날짜별 수업, GitHub 코드 링크, 강사 아티팩트 링크 (링크 등록만, 파일 업로드 없음) |
+| 공지 | 출석 / 평가 / 커리큘럼 / 연락처 / 공지 Q&A 카테고리 게시판, 필독 고정 |
+| 관리자 | 수업 등록·수정, 자료 링크 추가, 공지 작성, 회원 관리 (계정 생성·비밀번호 초기화·비활성화) |
+| 계정 보안 | 시스템이 10자 랜덤 비밀번호를 발급해 한 번만 표시, 첫 로그인 때 비밀번호 변경 강제 |
+
+### 캘린더 표시 규칙
+
+- 초록 점: 자료 준비 완료 (수업에 링크가 1개 이상)
+- 네이비 테두리 + 연한 블루 배경: 선택한 날짜
+- 연분홍 배경: 중요 일정
+- 붉은 숫자: 일요일
+
+---
+
+## 스크린샷
+
+| 로그인 | 공지 목록 |
+|---|---|
+| ![로그인](docs/screenshots/login.png) | ![공지 목록](docs/screenshots/notices.png) |
+
+| 회원 관리 (발급 비밀번호 1회 표시) | 첫 로그인 비밀번호 변경 강제 |
+|---|---|
+| ![회원 관리](docs/screenshots/admin-members.png) | ![비밀번호 변경](docs/screenshots/password-change.png) |
+
+| 수업 관리 | v2 준비 중 페이지 |
+|---|---|
+| ![수업 관리](docs/screenshots/admin-lessons.png) | ![준비 중](docs/screenshots/coming-soon.png) |
+
+> 스크린샷은 `local` 프로필의 시드 데이터로 찍었습니다. 회원 관리 화면의 비밀번호는 스크린샷용 임시 DB에서 발급한 값이며 실제 계정과 관계없습니다.
+
+---
+
+## 기술 스택
+
+- Java 21, Spring Boot 4 (Spring Security 7, Hibernate 7)
+- Spring Web MVC, Thymeleaf, Spring Data JPA, Validation
+- Spring Security 폼 로그인 + BCrypt
+- H2 (file 모드, `./data/boothub`)
+- Lombok
+- 프론트: Thymeleaf + 순수 CSS (CSS 변수 디자인 토큰). 외부 CSS/JS 프레임워크 없음, 폰트만 Pretendard CDN
+
+---
+
+## 실행 방법
+
+### 1. 환경변수
+
+| 이름 | 필수 | 설명 |
+|---|---|---|
+| `BOOTHUB_ADMIN_ID` | 첫 실행 시 | 첫 관리자 아이디 (`^[a-z0-9-]{4,20}$`, 예: `admin`) |
+| `BOOTHUB_ADMIN_PASSWORD` | 첫 실행 시 | 첫 관리자 비밀번호 |
+| `BOOTHUB_LINKS_SLACK` | 선택 | 헤더 Slack 링크 |
+| `BOOTHUB_LINKS_GITHUB` | 선택 | 헤더 GitHub 링크 |
+| `BOOTHUB_LINKS_NOTION` | 선택 | 헤더 Notion 링크 |
+
+- 회원 테이블이 비어 있는데 관리자 환경변수가 없으면 앱이 시작되지 않고 이유를 로그로 알려 줍니다.
+- 외부 링크는 환경변수 대신 git에 올리지 않는 `src/main/resources/application-local.yaml`에 넣어도 됩니다.
+  ```yaml
+  boothub:
+    links:
+      slack: https://...
+      github: https://...
+      notion: https://...
+  ```
+- 링크 값이 없으면 헤더에서 비활성으로 보입니다.
+
+### 2. 실행
+
+```bash
+# macOS / Linux / Git Bash
+export BOOTHUB_ADMIN_ID=admin
+export BOOTHUB_ADMIN_PASSWORD='원하는-비밀번호'
+./gradlew bootRun --args='--spring.profiles.active=local'
+```
+
+```powershell
+# Windows PowerShell
+$env:BOOTHUB_ADMIN_ID = "admin"
+$env:BOOTHUB_ADMIN_PASSWORD = "원하는-비밀번호"
+.\gradlew.bat bootRun --args='--spring.profiles.active=local'
+```
+
+브라우저에서 <http://localhost:8080> 으로 접속합니다.
+
+### 3. 연습용 계정 (`local` 프로필 전용)
+
+| 아이디 | 실명 | 역할 | 비밀번호 |
+|---|---|---|---|
+| `t3-01` | 이서연 | 강사 | `1234` |
+| `s3-001` | 김민준 | 수강생 | `1234` |
+| `s3-002` | 최지우 | 수강생 | `1234` |
+| `s3-003` | 정하윤 | 수강생 | `1234` |
+
+고정 비밀번호는 `local` 연습용 계정에만 허용하는 예외입니다. 다른 프로필에서는 첫 관리자만 만들어집니다.
+시드 데이터는 테이블이 비어 있을 때만 들어가므로, 처음부터 다시 보고 싶으면 앱을 끄고 `data/` 폴더를 지우세요.
+
+### 4. 테스트
+
+```bash
+./gradlew test
+```
+
+---
+
+## 계정 규칙
+
+| 역할 | 아이디 형식 | 예 |
+|---|---|---|
+| 수강생 (STUDENT) | `s{기수}-{번호 3자리}` | `s3-017` |
+| 강사 (INSTRUCTOR) | `t{기수}-{번호 2자리}` | `t3-01` |
+| 교수 (PROFESSOR) | `p{기수}-{번호 2자리}` | `p3-01` |
+| 관리자 (ADMIN) | 고정 이름 | `admin` |
+
+- 아이디는 생성 후 바꿀 수 없습니다.
+- 계정 생성·비밀번호 초기화 시 비밀번호는 관리자가 입력하지 않고, 시스템이 `SecureRandom`으로 10자(영문 대소문자+숫자)를 발급해 **화면에 한 번만** 보여 줍니다. DB에는 BCrypt 해시만 저장합니다.
+- 발급받은 계정은 첫 로그인 직후 `/account/password`로 이동하며, 변경 전에는 다른 페이지로 갈 수 없습니다.
+- 사용자 비밀번호: 8자 이상, 영문과 숫자 포함, 아이디와 같거나 아이디를 포함하면 안 됩니다.
+- 비활성화된 계정은 로그인할 수 없습니다. 관리자는 자기 계정을 비활성화할 수 없습니다.
+
+---
+
+## 프로젝트 구조
+
+도메인별 패키지로 나누고, `Controller → Service → Repository` 순서로 호출합니다. 템플릿에는 엔티티 대신 DTO를 넘깁니다.
+
+```
+src/main/java/com/wanted/boothub
+├── global
+│   ├── config       # SecurityConfig, JpaAuditingConfig, ClockConfig
+│   ├── common       # BaseTimeEntity (createdAt, updatedAt)
+│   ├── exception    # BusinessException, NotFoundException
+│   └── web          # 외부 링크·로그인 사용자 공통 모델, 준비 중 페이지
+├── member           # 회원, 로그인, 시드 계정, 비밀번호 발급·정책·변경 강제
+├── lesson           # 수업, 수업 자료 링크, 월간 캘린더, 시드 수업
+├── notice           # 공지, 카테고리, 필독, 시드 공지
+├── admin            # 관리자 화면 컨트롤러 (로직은 각 도메인 Service 호출)
+└── home             # 홈 (배너 + 캘린더 + 상세 패널)
+
+src/main/resources
+├── application.yaml
+├── static/css
+│   ├── tokens.css   # 디자인 토큰 (색·폰트·라운드)
+│   └── app.css      # 컴포넌트 스타일
+└── templates
+    ├── layout/      # base, header, sidebar fragment
+    ├── home/  lesson/  notice/  admin/  auth/  account/
+    ├── common/coming-soon.html
+    └── error/       # 4xx, 5xx
+```
+
+### 도메인 모델
+
+```
+Member ─────────── id, loginId(unique, 변경 불가), password(BCrypt), name, role,
+                   active, mustChangePassword
+Lesson ──1:N──▶ LessonResource
+  id, lessonDate(unique), title,      id, type(ARTIFACT | GITHUB | ETC),
+  description, githubUrl, important    title, url, sortOrder
+Notice ──N:1──▶ Member(author)
+  id, category, title, content, pinned
+```
+
+모든 엔티티는 `BaseTimeEntity`를 상속하고, 상태 변경은 Setter 대신 엔티티 메서드(`lesson.update(...)`, `member.resetPassword(...)` 등)로 합니다.
+
+### URL
+
+| 메서드 | URL | 설명 | 권한 |
+|---|---|---|---|
+| GET | `/login` | 로그인 | 전체 |
+| GET/POST | `/account/password` | 본인 비밀번호 변경 | 로그인 |
+| GET | `/` | 홈 (`?month=2026-11&date=2026-11-26`) | 로그인 |
+| GET | `/lessons/{date}` | 수업 상세 | 로그인 |
+| GET | `/notices`, `/notices/{id}` | 공지 목록 (`?category=`)·상세 | 로그인 |
+| GET/POST | `/admin/notices/new` | 공지 작성 | ADMIN, INSTRUCTOR |
+| GET/POST | `/admin/lessons`, `/admin/lessons/new`, `/admin/lessons/{id}/edit` | 수업 관리·등록·수정 | ADMIN |
+| POST | `/admin/lessons/{id}/resources` | 수업 자료 링크 추가 | ADMIN |
+| GET/POST | `/admin/members`, `/admin/members/new` | 회원 목록·계정 생성 | ADMIN |
+| POST | `/admin/members/{id}/reset-password`, `/admin/members/{id}/deactivate` | 비밀번호 초기화·비활성화 | ADMIN |
+| GET | `/coming-soon?feature=chat` | v2 준비 중 페이지 | 로그인 |
+
+### 디자인 토큰
+
+| 토큰 | 값 | 용도 |
+|---|---|---|
+| `--color-ivory` | `#F8F7F4` | 배경 |
+| `--color-white` | `#FFFFFF` | 카드 |
+| `--color-navy` | `#29466B` | 메인·선택·로고 |
+| `--color-blue` | `#91ABC9` | 보조 |
+| `--color-green` | `#83A890` | 자료 준비 완료 |
+| `--color-pink` | `#F4C6D7` | 강조·중요 일정 |
+| `--color-sunday` | `#C2566B` | 캘린더 일요일 |
+
+색은 모두 `tokens.css`의 변수로만 사용하고, 연한 배경은 파생 토큰(`--color-blue-soft`, `--color-pink-soft`)을 씁니다.
+
+---
+
+## v2 로드맵
+
+v2 기능은 지금 사이드바 메뉴와 버튼만 있고, 누르면 "준비 중" 페이지로 연결됩니다.
+새 기능은 새 패키지로 추가하고 기존 도메인 코드는 최소한만 건드립니다.
+
+| 기능 | 패키지 | 계획 |
+|---|---|---|
+| AI 수업 정리 | `material` | 수업 코드·주석을 바탕으로 표/구조 그림 정리. `AiMaterialClient` 인터페이스로 구현체 교체 가능, 결과는 `LessonMaterial`(JSON)로 저장. Mermaid 렌더링만 예외로 mermaid.js 허용 |
+| 난이도별 복습 퀴즈 | `material` | `ResourceType`에 `QUIZ` 추가, 응답은 Jackson + Bean Validation으로 검증 |
+| 복습용 미니 프로젝트 | `material` | `ResourceType`에 `MINI_PROJECT` 추가 |
+| 번개 학습방 | `chat` | ChatRoom(주제, 방장, 공개 여부), ChatMessage. WebSocket(STOMP) 실시간 채팅 |
+| 프로젝트 전시관 | `showcase` | 작품명, 설명, GitHub 링크, 작성자, 연관 수업 |
+| 학습 Q&A / 수업 Q&A | `qna` | 수업과 선택적으로 연결되는 질문·답변 |
+| GitHub 자동 동기화 | `sync` | `GitHubClient` 인터페이스 + 관리자 수동 버튼 → 이후 `@Scheduled` 또는 Webhook |
+| 세부 열람 권한 | `member` 확장 | 현재는 로그인 = 열람 허가 |
+| 파일 업로드 | — | 현재 아티팩트는 링크 등록만 지원 |
+
+AI 모듈의 상세 설계는 [`docs/ai-module-spec.md`](docs/ai-module-spec.md)에 있습니다.
+
+---
+
+## 개발 단계
+
+| 단계 | 내용 | 상태 |
+|---|---|---|
+| 1 | 프로젝트 생성, 패키지 구조, 레이아웃, 디자인 토큰, 준비 중 페이지 | 완료 |
+| 2 | 회원, 폼 로그인, 시드 계정, 실명 표시, 비밀번호 변경 강제 흐름 | 완료 |
+| 3 | 수업·수업 자료, 시드 수업, 홈 캘린더 + 상세 패널 | 완료 |
+| 4 | 공지, 카테고리 필터, 필독 배너, 작성 화면 | 완료 |
+| 5 | 관리자 수업·자료 링크 관리, 회원 관리 | 완료 |
+| 6 | README | 완료 |
