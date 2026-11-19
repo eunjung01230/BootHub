@@ -125,7 +125,12 @@ public class MemberService {
         member.changePassword(passwordEncoder.encode(newPassword));
     }
 
-    private Member getMember(Long memberId) {
+    /**
+     * 회원 엔티티 조회. 다른 도메인이 회원을 연관관계로 걸 때(예: 공지 작성자)도 이 메서드를 쓴다.
+     * 다른 도메인은 MemberRepository 를 직접 주입받지 않는다 (ArchitectureTest).
+     * 화면용이 아니므로 템플릿에는 넘기지 않는다.
+     */
+    public Member getMember(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException("회원을 찾을 수 없습니다."));
     }

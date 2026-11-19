@@ -1,7 +1,5 @@
 package com.wanted.boothub.global.config;
 
-import com.wanted.boothub.member.LoginSuccessHandler;
-import com.wanted.boothub.member.PasswordChangeRequiredFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -15,7 +13,7 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
@@ -27,6 +25,9 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
  *
  * 비밀번호 변경이 필요한 계정(mustChangePassword)은 로그인 직후와 이후 모든 요청에서
  * /account/password 로 보낸다. 권한 검사보다 먼저 돌려서, 권한이 있는 URL 을 직접 입력해도 우회되지 않는다.
+ * 그 필터는 member 의 PasswordChangeSecurityCustomizer(Customizer&lt;HttpSecurity&gt; 빈)가 모든 체인에 넣고,
+ * 로그인 성공 이동은 AuthenticationSuccessHandler 빈(member 의 LoginSuccessHandler)을 주입받아 쓴다.
+ * global 은 공용 커널이므로 member 클래스를 직접 import 하지 않는다 (ArchitectureTest).
  *
  * 로그인 세션은 SessionRegistry 에 기록한다. 계정을 비활성화하거나 비밀번호를 초기화하면
  * MemberSessionExpirer 가 그 회원의 세션을
@@ -57,7 +58,6 @@ public class SecurityConfig {
                 .sessionManagement(expiredSessionsLogout(sessionRegistry))
                 .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("ADMIN"))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login")))
-                .addFilterBefore(new PasswordChangeRequiredFilter(), AuthorizationFilter.class)
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
         return http.build();
@@ -66,7 +66,8 @@ public class SecurityConfig {
     /** 앱 전체 체인. CSRF 는 기본값(켜짐) 그대로 둔다. */
     @Bean
     @Order(2)
-    public SecurityFilterChain appFilterChain(HttpSecurity http, SessionRegistry sessionRegistry) throws Exception {
+    public SecurityFilterChain appFilterChain(HttpSecurity http, SessionRegistry sessionRegistry,
+                                              AuthenticationSuccessHandler loginSuccessHandler) throws Exception {
         http
                 .sessionManagement(expiredSessionsLogout(sessionRegistry))
                 .authorizeHttpRequests(auth -> auth
@@ -80,9 +81,8 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .usernameParameter("loginId")
-                        .successHandler(new LoginSuccessHandler())
+                        .successHandler(loginSuccessHandler)
                         .permitAll())
-                .addFilterBefore(new PasswordChangeRequiredFilter(), AuthorizationFilter.class)
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
                         .permitAll());

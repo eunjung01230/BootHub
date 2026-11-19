@@ -2,7 +2,7 @@ package com.wanted.boothub.notice;
 
 import com.wanted.boothub.global.exception.NotFoundException;
 import com.wanted.boothub.member.Member;
-import com.wanted.boothub.member.MemberRepository;
+import com.wanted.boothub.member.MemberService;
 import com.wanted.boothub.notice.dto.NoticeBannerDto;
 import com.wanted.boothub.notice.dto.NoticeDetailDto;
 import com.wanted.boothub.notice.dto.NoticeSummaryDto;
@@ -26,7 +26,7 @@ public class NoticeService {
     private static final Sort LATEST = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
 
     private final NoticeRepository noticeRepository;
-    private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
     /** @param category 없으면 전체 공지 */
     public List<NoticeSummaryDto> getList(NoticeCategory category) {
@@ -71,8 +71,7 @@ public class NoticeService {
      */
     @Transactional
     public Long create(Long authorId, NoticeCategory category, String title, String content, boolean pinned) {
-        Member author = memberRepository.findById(authorId)
-                .orElseThrow(() -> new NotFoundException("작성자를 찾을 수 없습니다."));
+        Member author = memberService.getMember(authorId);
         Notice notice = Notice.create(category, title.strip(), content.strip(), author);
         if (pinned) {
             notice.pin();
