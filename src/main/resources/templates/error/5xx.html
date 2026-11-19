@@ -1,23 +1,35 @@
 <!DOCTYPE html>
-<!--/* 5xx 공통 오류 화면. 레이아웃 렌더링 자체가 실패할 수 있으므로 헤더·사이드바 없이 단독으로 그린다. */-->
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<!--/*
+  500 을 뺀 5xx 공통 오류 화면 (502·503 등). Spring Boot 기본 오류 처리(/error)가 status 에 맞춰 이 템플릿을 고른다.
+  500 은 error/500.html 이 먼저 선택된다.
+  공통 레이아웃의 모델(externalLinks, loginUser, currentPath)은 GlobalModelAdvice 가 DB 조회 없이 채우므로
+  서비스 오류가 나도 헤더·사이드바를 그릴 수 있다. 예외 메시지·스택은 화면에 보여주지 않는다.
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::main}, ~{})}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>오류가 발생했어요 · BootHub</title>
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-    <link rel="stylesheet" th:href="@{/css/tokens.css}">
-    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<main class="login-page">
+<main class="app-main">
     <section class="card coming-soon">
-        <span class="badge" th:text="${status}">500</span>
-        <h1 class="coming-soon-title">일시적인 오류가 발생했어요</h1>
-        <p class="coming-soon-desc">잠시 후 다시 시도해 주세요. 계속되면 운영진에게 알려 주세요.</p>
+        <span class="coming-soon-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>
+                <path d="M12 9v4"/>
+                <path d="M12 17h.01"/>
+            </svg>
+        </span>
+        <span class="badge is-pink" th:text="${status}">503</span>
+        <h1 class="coming-soon-title">지금은 서비스를 이용할 수 없어요</h1>
+        <p class="coming-soon-desc">
+            잠시 후 다시 시도해 주세요.<br>
+            계속되면 운영진에게 알려 주세요.
+        </p>
         <div class="coming-soon-actions">
             <a class="btn btn-primary" th:href="@{/}">홈으로</a>
+            <a class="btn btn-outline" th:href="@{/notices(category='CONTACT')}">운영진 연락처</a>
         </div>
     </section>
 </main>

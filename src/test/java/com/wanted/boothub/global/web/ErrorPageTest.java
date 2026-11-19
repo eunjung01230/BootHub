@@ -58,6 +58,21 @@ class ErrorPageTest {
     }
 
     @Test
+    void 상태_503은_레이아웃이_있는_5xx_화면을_보여주고_예외_내용은_숨긴다() throws Exception {
+        mockMvc.perform(get("/error")
+                        .with(user(loginUserDetailsService.loadUserByUsername("s3-001")))
+                        .requestAttr(RequestDispatcher.ERROR_STATUS_CODE, 503)
+                        .requestAttr(RequestDispatcher.ERROR_EXCEPTION, new IllegalStateException("secret-detail"))
+                        .accept(MediaType.TEXT_HTML))
+                .andExpect(view().name("error/5xx"))
+                .andExpect(content().string(allOf(
+                        containsString("지금은 서비스를 이용할 수 없어요"),
+                        containsString(">503<"),
+                        containsString("class=\"app-sidebar\""),
+                        not(containsString("secret-detail")))));
+    }
+
+    @Test
     void 상태_403은_4xx_화면을_보여준다() throws Exception {
         mockMvc.perform(get("/error")
                         .with(user(loginUserDetailsService.loadUserByUsername("s3-001")))
