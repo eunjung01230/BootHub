@@ -8,16 +8,16 @@
     "home"
   ],
   "summary": {
-    "classes": 59,
-    "lines": 2703,
+    "classes": 61,
+    "lines": 2747,
     "domains": 6,
     "cross_domain_imports": 19,
     "cross_domain_imports_core": 5,
     "cross_domain_imports_from_assembly": 14,
-    "kernel_to_domain_imports": 4,
+    "kernel_to_domain_imports": 0,
     "service_injections": 10,
     "cross_domain_injections": 7,
-    "cross_domain_repository_injections": 1,
+    "cross_domain_repository_injections": 0,
     "classes_ctor_params_ge5": 11,
     "cycle_pairs": 0
   },
@@ -56,24 +56,7 @@
       "imports": 1
     }
   ],
-  "kernel_to_domain": [
-    {
-      "from": "src/main/java/com/wanted/boothub/global/config/SecurityConfig.java",
-      "import": "com.wanted.boothub.member.LoginSuccessHandler"
-    },
-    {
-      "from": "src/main/java/com/wanted/boothub/global/config/SecurityConfig.java",
-      "import": "com.wanted.boothub.member.PasswordChangeRequiredFilter"
-    },
-    {
-      "from": "src/main/java/com/wanted/boothub/global/web/GlobalModelAdvice.java",
-      "import": "com.wanted.boothub.member.LoginUser"
-    },
-    {
-      "from": "src/main/java/com/wanted/boothub/global/web/GlobalModelAdvice.java",
-      "import": "com.wanted.boothub.member.dto.LoginUserDto"
-    }
-  ],
+  "kernel_to_domain": [],
   "cross_domain_injections": [
     {
       "class": "AdminController",
@@ -132,11 +115,11 @@
     {
       "class": "NoticeService",
       "domain": "notice",
-      "injects": "MemberRepository",
+      "injects": "MemberService",
       "target_domain": "member",
       "layer": "service",
       "assembly": false,
-      "repository": true
+      "repository": false
     }
   ],
   "ctor_params_ge5": [
@@ -223,7 +206,7 @@
       "score": 5
     },
     {
-      "file": "src/main/java/com/wanted/boothub/member/LoginUser.java",
+      "file": "src/main/java/com/wanted/boothub/member/MemberService.java",
       "out": 0,
       "in": 3,
       "score": 3
@@ -235,28 +218,28 @@
       "score": 3
     },
     {
-      "file": "src/main/java/com/wanted/boothub/global/config/SecurityConfig.java",
-      "out": 2,
-      "in": 0,
+      "file": "src/main/java/com/wanted/boothub/lesson/LessonService.java",
+      "out": 0,
+      "in": 2,
       "score": 2
     }
   ],
   "git": {
-    "commits_total": 17,
-    "commits_touching_domains": 9,
-    "avg_domains_per_commit": 2.22,
+    "commits_total": 19,
+    "commits_touching_domains": 10,
+    "avg_domains_per_commit": 2.2,
     "cochange_top10": [
-      {
-        "pair": [
-          "lesson",
-          "member"
-        ],
-        "commits": 3
-      },
       {
         "pair": [
           "member",
           "notice"
+        ],
+        "commits": 4
+      },
+      {
+        "pair": [
+          "lesson",
+          "member"
         ],
         "commits": 3
       },
