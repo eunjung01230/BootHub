@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -46,6 +47,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
@@ -56,6 +58,7 @@ import static org.springframework.security.test.web.servlet.response.SecurityMoc
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -69,7 +72,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *  3. CSRF: 권한이 있어도 토큰이 없거나 틀리면 403 (H2 콘솔만 local 에서 제외)
  *  4. 이중 잠금: 관리용 Service 메서드를 직접 불러도 @PreAuthorize 가 막는다
  *  5. 비밀번호 변경 강제: 변경 전에는 어떤 URL 을 직접 입력해도 /account/password 로 간다
- *  6. 객체 단위: 본인 비밀번호만 변경, 관리자 본인 비활성화 불가, 비활성 계정 로그인 불가
+ *  6. 객체 단위: 본인 비밀번호만 변경, 관리자 본인 비활성화 불가, 비활성 계정 로그인 불가·기존 세션 끊김
  *  7. 경로 변형(../, 인코딩된 /, ;, 대소문자, 끝 슬래시)으로 우회되지 않는다
  *
  * 이 클래스는 local 프로필이라 H2 콘솔이 열려 있다. local 이 아닌 환경은 H2ConsoleNonLocalTest 에서 본다.
@@ -455,6 +458,43 @@ class AccessControlTest {
                 .andExpect(unauthenticated());
     }
 
+    @Test
+    void 비활성화하면_이미_로그인해_있던_세션도_끊긴다() throws Exception {
+        MockHttpSession target = login("s3-003", "1234");
+        MockHttpSession targetSecondDevice = login("s3-003", "1234");
+        MockHttpSession bystander = login("s3-002", "1234");
+        mockMvc.perform(get("/").session(target)).andExpect(status().isOk());
+
+        mockMvc.perform(post("/admin/members/{id}/deactivate", memberOf("s3-003").getId())
+                        .with(user(principalOf(Who.ADMIN))).with(csrf()))
+                .andExpect(flash().attributeExists("flashMessage"));
+
+        // 다음 요청에서 로그아웃되어 로그인 화면으로 (모든 기기의 세션)
+        mockMvc.perform(get("/").session(target)).andExpect(redirectedUrl("/login?expired"));
+        mockMvc.perform(get("/notices").session(targetSecondDevice)).andExpect(redirectedUrl("/login?expired"));
+        assertThat(target.isInvalid()).isTrue();
+        // 다른 회원의 세션은 그대로
+        mockMvc.perform(get("/").session(bystander)).andExpect(status().isOk());
+        // 안내 문구
+        mockMvc.perform(get("/login?expired"))
+                .andExpect(content().string(containsString("로그인이 해제되었어요. 다시 로그인해 주세요.")));
+    }
+
+    @Test
+    void 비활성화_화면을_거치지_않고_Service_로_비활성화해도_세션이_끊긴다() throws Exception {
+        MockHttpSession target = login("s3-003", "1234");
+
+        loginAs(IntegrationTest.ADMIN_ID);
+        memberService.deactivate(memberOf("s3-003").getId(), memberOf(IntegrationTest.ADMIN_ID).getId());
+
+        mockMvc.perform(post("/account/password").session(target).with(csrf())
+                        .param("currentPassword", "1234")
+                        .param("newPassword", "react2026")
+                        .param("newPasswordConfirm", "react2026"))
+                .andExpect(redirectedUrl("/login?expired"));
+        assertThat(passwordEncoder.matches("1234", memberOf("s3-003").getPassword())).isTrue();
+    }
+
     // ================================================================
     // 7. 경로 변형으로 관리자 URL 우회
     // ================================================================
@@ -513,6 +553,14 @@ class AccessControlTest {
         LoginUser loginUser = (LoginUser) loginUserDetailsService.loadUserByUsername(loginId);
         assertThat(loginUser.isMustChangePassword()).isTrue();
         return loginUser;
+    }
+
+    /** 실제 폼 로그인으로 세션을 만든다 (SessionRegistry 에 기록된다) */
+    private MockHttpSession login(String loginId, String password) throws Exception {
+        MvcResult result = mockMvc.perform(formLogin("/login").userParameter("loginId").user(loginId).password(password))
+                .andExpect(authenticated())
+                .andReturn();
+        return (MockHttpSession) result.getRequest().getSession(false);
     }
 
     /** Service 직접 호출용 로그인 (MockMvc 요청과는 상관없다) */

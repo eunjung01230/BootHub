@@ -7,12 +7,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 /**
  * 폼 로그인 + URL 권한. 로그인 = 열람 허가, 관리 화면만 역할로 제한한다.
@@ -22,6 +27,9 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
  *
  * 비밀번호 변경이 필요한 계정(mustChangePassword)은 로그인 직후와 이후 모든 요청에서
  * /account/password 로 보낸다. 권한 검사보다 먼저 돌려서, 권한이 있는 URL 을 직접 입력해도 우회되지 않는다.
+ *
+ * 로그인 세션은 SessionRegistry 에 기록한다. 계정을 비활성화하면 MemberSessionExpirer 가 그 회원의 세션을
+ * 만료시키고, 다음 요청에서 ConcurrentSessionFilter 가 로그아웃시켜 /login?expired 로 보낸다.
  */
 @Configuration
 @EnableMethodSecurity
@@ -41,9 +49,11 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     @Profile("local")
-    public SecurityFilterChain h2ConsoleFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain h2ConsoleFilterChain(HttpSecurity http, SessionRegistry sessionRegistry)
+            throws Exception {
         http
                 .securityMatcher(H2_CONSOLE)
+                .sessionManagement(expiredSessionsLogout(sessionRegistry))
                 .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("ADMIN"))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login")))
                 .addFilterBefore(new PasswordChangeRequiredFilter(), AuthorizationFilter.class)
@@ -55,8 +65,9 @@ public class SecurityConfig {
     /** 앱 전체 체인. CSRF 는 기본값(켜짐) 그대로 둔다. */
     @Bean
     @Order(2)
-    public SecurityFilterChain appFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain appFilterChain(HttpSecurity http, SessionRegistry sessionRegistry) throws Exception {
         http
+                .sessionManagement(expiredSessionsLogout(sessionRegistry))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(STATIC_RESOURCES).permitAll()
                         .requestMatchers("/login", "/error").permitAll()
@@ -75,6 +86,32 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/login?logout")
                         .permitAll());
         return http.build();
+    }
+
+    /**
+     * 로그인 세션을 SessionRegistry 에 기록하고(동시 로그인 수 제한 없음), 만료 표시된 세션은
+     * 다음 요청에서 로그아웃시켜 /login?expired 로 보낸다.
+     */
+    private static Customizer<SessionManagementConfigurer<HttpSecurity>> expiredSessionsLogout(
+            SessionRegistry sessionRegistry) {
+        return session -> session
+                .maximumSessions(-1)
+                .sessionRegistry(sessionRegistry)
+                .expiredUrl("/login?expired");
+    }
+
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    /**
+     * 세션 소멸·세션 ID 변경(비밀번호 변경 후 changeSessionId) 이벤트를 SessionRegistry 에 알린다.
+     * 없으면 끝난 세션이 기록에 남고, 바뀐 세션 ID 를 찾지 못해 끊을 수 없다.
+     */
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 
     @Bean

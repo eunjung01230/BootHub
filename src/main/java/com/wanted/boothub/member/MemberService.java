@@ -24,6 +24,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordGenerator passwordGenerator;
+    private final MemberSessionExpirer memberSessionExpirer;
 
     public boolean hasAnyMember() {
         return memberRepository.count() > 0;
@@ -85,7 +86,10 @@ public class MemberService {
         return new IssuedPasswordDto(member.getLoginId(), member.getName(), rawPassword, "초기화");
     }
 
-    /** 계정 비활성화. 관리자가 자기 계정을 잠가 버리는 일을 막는다. */
+    /**
+     * 계정 비활성화. 관리자가 자기 계정을 잠가 버리는 일을 막는다.
+     * 이미 로그인해 있던 세션도 끊어서, 다음 요청부터 바로 로그인 화면으로 보낸다.
+     */
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public void deactivate(Long memberId, Long currentMemberId) {
@@ -93,6 +97,7 @@ public class MemberService {
             throw new BusinessException("본인 계정은 비활성화할 수 없어요.");
         }
         getMember(memberId).deactivate();
+        memberSessionExpirer.expireAll(memberId);
     }
 
     /**

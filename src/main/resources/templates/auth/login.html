@@ -27,6 +27,7 @@
 
         <p class="login-alert is-error" th:if="${param.error != null}">아이디 또는 비밀번호가 올바르지 않아요.</p>
         <p class="login-alert" th:if="${param.logout != null}">로그아웃되었어요.</p>
+        <p class="login-alert" th:if="${param.expired != null}">로그인이 해제되었어요. 다시 로그인해 주세요.</p>
 
         <form class="login-form" th:action="@{/login}" method="post">
             <label class="form-field">
