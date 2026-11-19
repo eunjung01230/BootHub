@@ -122,6 +122,7 @@ $env:BOOTHUB_ADMIN_PASSWORD = "원하는-비밀번호"
 - `AccessControlTest`: 역할(비로그인·수강생·교수·강사·관리자) × 모든 URL(GET·POST) 권한 표, CSRF, Service 이중 잠금,
   비밀번호 변경 강제, 본인 계정 검사, 세션 끊기, 경로 조작 우회를 확인합니다.
 - `H2ConsoleNonLocalTest`: `local`이 아닌 환경에는 H2 콘솔이 등록되지 않는지 확인합니다.
+- `ArchitectureTest`: ArchUnit으로 층 방향과 도메인 경계를 확인합니다 ([경계 검증](#경계-검증) 참고).
 
 ---
 
@@ -173,8 +174,8 @@ src/main/java/com/wanted/boothub
 │   ├── config       # SecurityConfig(URL 권한·메서드 보안·세션 관리), JpaAuditingConfig, ClockConfig
 │   ├── common       # BaseTimeEntity (createdAt, updatedAt)
 │   ├── exception    # BusinessException, NotFoundException
-│   └── web          # 외부 링크·로그인 사용자 공통 모델, 준비 중 페이지
-├── member           # 회원, 로그인, 시드 계정, 비밀번호 발급·정책·변경 강제, 세션 끊기
+│   └── web          # 외부 링크·현재 경로 공통 모델, 준비 중 페이지
+├── member           # 회원, 로그인, 로그인 사용자 공통 모델, 시드 계정, 비밀번호 발급·정책·변경 강제, 세션 끊기
 ├── lesson           # 수업, 수업 자료 링크, 월간 캘린더, 시드 수업
 ├── notice           # 공지, 카테고리, 필독, 시드 공지
 ├── admin            # 관리자 화면 컨트롤러 (로직은 각 도메인 Service 호출)
@@ -205,6 +206,44 @@ Notice ──N:1──▶ Member(author)
 ```
 
 모든 엔티티는 `BaseTimeEntity`를 상속하고, 상태 변경은 Setter 대신 엔티티 메서드(`lesson.update(...)`, `member.resetPassword(...)` 등)로 합니다.
+
+### 경계 검증
+
+도메인을 늘려 가도 바꾸는 비용이 커지지 않도록, 층과 도메인 사이의 경계를 테스트로 지킵니다.
+
+- `global`은 공용 커널입니다. 도메인은 `global`을 써도 되지만, `global`은 도메인 클래스를 모릅니다.
+- `admin`·`home`은 화면 조립 계층입니다. 다른 도메인의 Service·DTO만 쓰고 Repository·엔티티는 직접 쓰지 않습니다.
+
+`ArchitectureTest`(ArchUnit)가 `./gradlew test`에서 함께 검사하는 규칙은 다음과 같습니다.
+
+| 규칙 | 내용 |
+|---|---|
+| 층 방향 | `Controller → Service → Repository` 방향만 허용 |
+| 엔티티 | DTO·Controller·Spring 웹 계층에 의존하지 않음 |
+| Repository | Service는 다른 도메인의 Repository를 주입받지 않음 (다른 도메인 데이터는 그 도메인 Service로 받음) |
+| Policy | `PasswordPolicy` 같은 규칙 클래스는 Spring에 의존하지 않음 |
+| 순환 | 도메인 패키지 사이 순환 참조 금지 |
+| 공용 커널 | `global`은 도메인 패키지를 import하지 않음 |
+| 조립 계층 | `admin`·`home`은 Repository·엔티티를 직접 쓰지 않고, 도메인은 `admin`·`home`을 모름 |
+
+`global`이 member 기능을 써야 할 때는 Spring 타입으로 연결합니다. 예를 들어 `SecurityConfig`는 로그인 성공 처리를 `AuthenticationSuccessHandler` 빈으로 주입받습니다. 비밀번호 변경 강제 필터는 member의 `Customizer<HttpSecurity>` 빈이 모든 보안 체인에 넣습니다.
+
+얽힘 정도는 측정 스크립트로 확인합니다. Python 3.8 이상이면 되고, 표준 라이브러리만 씁니다.
+
+```bash
+python scripts/boundary_metrics.py --assembly admin,home               # 측정만
+python scripts/boundary_metrics.py --assembly admin,home --mode check  # baseline과 비교
+python scripts/boundary_metrics.py --assembly admin,home --mode baseline  # 기준값 다시 저장
+```
+
+도메인 간 import, 다른 도메인 Service·Repository 주입, 생성자 파라미터 5개 이상인 클래스, 도메인 순환, git 이력 기준 커밋당 수정 도메인 수를 셉니다. 기준값은 [`docs/boundary-baseline.json`](docs/boundary-baseline.json)에 있습니다. Claude Code에서는 `/check-boundaries com.wanted.boothub check`로 측정부터 ArchUnit 실행, 보고까지 한 번에 할 수 있습니다.
+
+| 항목 | 정리 전 | 현재 |
+|---|---|---|
+| `global` → 도메인 import | 4 | 0 |
+| 다른 도메인 Repository 주입 | 1 | 0 |
+| 도메인 간 순환 | 0 (`global` ↔ `member` 순환은 숨어 있었음) | 0 |
+| ArchUnit 규칙 위반 | 9건 (2개 규칙) | 0 |
 
 ### URL
 
@@ -273,3 +312,4 @@ AI 모듈의 상세 설계는 [`docs/ai-module-spec.md`](docs/ai-module-spec.md)
 | 5 | 관리자 수업·자료 링크 관리, 회원 관리 | 완료 |
 | 6 | README | 완료 |
 | + | 보안 강화: URL·Service 이중 잠금, CSRF, `local` 전용 H2 콘솔, 403 화면, 비활성화·초기화 시 세션 끊기 | 완료 |
+| + | 경계 검증: ArchUnit 규칙, 측정 스크립트와 baseline, `global` ↔ `member` 순환·다른 도메인 Repository 주입 정리 | 완료 |
