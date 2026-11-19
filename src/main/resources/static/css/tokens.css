@@ -1,0 +1,18 @@
+/* BootHub 디자인 토큰 — 색은 반드시 이 변수로만 사용한다 */
+:root {
+  --color-ivory: #F8F7F4;   /* 배경 35% */
+  --color-white: #FFFFFF;   /* 카드 35% */
+  --color-navy:  #29466B;   /* 메인·선택·로고 15% */
+  --color-blue:  #91ABC9;   /* 보조 7% */
+  --color-green: #83A890;   /* 완료 상태 4% */
+  --color-pink:  #F4C6D7;   /* 강조·중요 일정 4% */
+  /* 파생 토큰: 연한 배경 (선택 날짜·배지 / 중요 일정·필독 배너) */
+  --color-blue-soft: color-mix(in srgb, var(--color-blue) 22%, var(--color-white));
+  --color-pink-soft: color-mix(in srgb, var(--color-pink) 35%, var(--color-white));
+  --font-base: 'Pretendard', -apple-system, 'Malgun Gothic', sans-serif;
+  --color-text:  #2B2F38;
+  --color-muted: #6B7280;
+  --color-border:#E3E1DA;
+  --radius-card: 12px;
+  --radius-cell: 8px;
+}

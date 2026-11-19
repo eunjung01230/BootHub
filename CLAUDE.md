@@ -8,7 +8,7 @@ AI 코딩 도구는 작업 전에 이 파일을 반드시 읽고, 여기 적힌 
 
 ## 1. 기술 스택
 
-- Java 21, Spring Boot 3
+- Java 21, Spring Boot 4 (Spring Security 7, Hibernate 7)
 - Spring Web, Thymeleaf, Spring Data JPA, Validation
 - Spring Security (폼 로그인, BCrypt) — 2단계부터 적용
 - H2 (file 모드: `jdbc:h2:file:./data/boothub`)
@@ -177,6 +177,9 @@ NoticeCategory (enum, 한글 라벨 포함)
   --color-blue:  #91ABC9;   /* 보조 7% */
   --color-green: #83A890;   /* 완료 상태 4% */
   --color-pink:  #F4C6D7;   /* 강조·중요 일정 4% */
+  /* 파생 토큰: 연한 배경 (선택 날짜·배지 / 중요 일정·필독 배너) */
+  --color-blue-soft: color-mix(in srgb, var(--color-blue) 22%, var(--color-white));
+  --color-pink-soft: color-mix(in srgb, var(--color-pink) 35%, var(--color-white));
   --font-base: 'Pretendard', -apple-system, 'Malgun Gothic', sans-serif;
   --color-text:  #2B2F38;
   --color-muted: #6B7280;
@@ -189,10 +192,11 @@ NoticeCategory (enum, 한글 라벨 포함)
 - 카드: 흰 배경, 얇은 테두리, 그림자 거의 없음
 - 사이드바 메뉴는 줄바꿈되지 않게 너비 확보
 - 색은 반드시 변수로만 사용. 하드코딩 금지
+- 연한 배경색이 필요하면 컴포넌트에서 `color-mix`를 새로 쓰지 말고 파생 토큰(`-soft`)을 쓴다
 
 ---
 
-## 8. 시드 데이터 (`data.sql` 또는 `CommandLineRunner`)
+## 8. 시드 데이터 (`CommandLineRunner`, 해당 테이블이 비어 있을 때만 삽입)
 
 - 계정: admin / instructor / student1~3 (비밀번호 `1234`, BCrypt 인코딩), 실명 포함
 - 2026년 11월 수업: 와이어프레임 캘린더와 동일
@@ -227,6 +231,7 @@ NoticeCategory (enum, 한글 라벨 포함)
 - Controller에 비즈니스 로직을 넣지 않는다 (Controller → Service → Repository)
 - 엔티티를 템플릿에 직접 넘기지 않고, 화면용 데이터는 dto로 만든다
 - 외부 CSS/JS 프레임워크를 추가하지 않는다 (Pretendard 폰트 CDN만 예외)
+- Spring Boot 3 이하 방식(WebSecurityConfigurerAdapter, and() 체이닝 등)을 사용하지 않는다
 - 요청 범위 밖의 파일을 임의로 리팩터링하지 않는다
 
 ---

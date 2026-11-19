@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::main}, ~{})}">
+<head>
+    <title th:text="|${comingSoon.title} · BootHub|">준비 중 · BootHub</title>
+</head>
+<body>
+<main class="app-main">
+    <section class="card coming-soon">
+        <div class="coming-soon-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M12 7v5l3 2"/>
+            </svg>
+        </div>
+        <span class="badge" th:text="${comingSoon.badge}">v2 예정</span>
+        <h1 class="coming-soon-title" th:text="${comingSoon.title}">준비 중인 기능</h1>
+        <p class="coming-soon-desc">
+            <span th:text="${comingSoon.description}">설명</span><br>
+            지금은 준비 중이에요. 조금만 기다려 주세요!
+        </p>
+        <div class="coming-soon-actions">
+            <a class="btn btn-primary" th:href="@{/}">홈으로</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

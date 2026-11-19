@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::main}, ~{::section.app-bottom})}">
+<head>
+    <title>홈 · BootHub</title>
+</head>
+<body>
+<main class="app-main">
+    <div class="page-head">
+        <h1 class="page-title">우리의 배움이 쌓이는 공간</h1>
+        <p class="page-desc">오늘도 함께 배우고 성장하는 하루.</p>
+    </div>
+
+    <!--/* 1단계: 영역 자리만 잡아둔다. 실제 내용은 3·4단계에서 채운다. */-->
+    <div class="home-stack">
+        <div class="placeholder is-banner">필독 공지 배너 (4단계)</div>
+        <div class="placeholder is-calendar" id="calendar">월간 수업 캘린더 (3단계)</div>
+        <div class="placeholder is-panel">선택 날짜 상세 패널 (3단계)</div>
+    </div>
+</main>
+
+<section class="app-bottom">
+    <div class="placeholder is-card">번개 학습방 · 곧 열려요 (3단계)</div>
+    <div class="placeholder is-card">프로젝트 전시관 · 곧 열려요 (3단계)</div>
+</section>
+</body>
+</html>

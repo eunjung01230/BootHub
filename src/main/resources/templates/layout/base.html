@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--/*
+  전체 뼈대. 각 페이지는 title, main, 하단 전체폭 영역(bottom)을 넘긴다.
+  하단 영역이 없으면 ~{} 를 넘긴다.
+    <html th:replace="~{layout/base :: layout(~{::title}, ~{::main}, ~{})}">
+    <html th:replace="~{layout/base :: layout(~{::title}, ~{::main}, ~{::section.app-bottom})}">
+*/-->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content, bottom)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:replace="${title}">BootHub</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" th:href="@{/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-shell">
+    <header th:replace="~{layout/header :: header}"></header>
+
+    <div class="app-body">
+        <aside th:replace="~{layout/sidebar :: sidebar}"></aside>
+        <main th:replace="${content}"></main>
+    </div>
+
+    <!--/* 사이드바 아래까지 걸치는 전체폭 영역 (홈 하단 카드 등) */-->
+    <section th:replace="${bottom}"></section>
+</div>
+</body>
+</html>

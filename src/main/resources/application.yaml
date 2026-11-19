@@ -10,14 +10,17 @@ spring:
       enabled: true
   jpa:
     hibernate:
-      ddl-auto: create
-    defer-datasource-initialization: true
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-  sql:
-    init:
-      mode: always
   thymeleaf:
     cache: false
+
+# 헤더 고정 외부 링크 (실제 워크스페이스 주소로 교체)
+boothub:
+  links:
+    slack: https://slack.com
+    github: https://github.com
+    notion: https://www.notion.so
